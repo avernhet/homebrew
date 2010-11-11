@@ -18,23 +18,19 @@ class Llvm <Formula
   end
 
   def install
-    ENV.gcc_4_2 # llvm can't compile itself
-
     if build_clang?
       clang_dir = Pathname.new(Dir.pwd)+'tools/clang'
       Clang.new.brew { clang_dir.install Dir['*'] }
     end
 
-    system "./configure", "--prefix=#{prefix}",
-                          "--enable-targets=host-only",
-                          "--enable-optimized"
-    system "make" # seperate steps required, otherwise the build fails
-    system "make install"
-
-    if build_clang?
-      Dir.chdir clang_dir do
-        system "make install"
-      end
+    build_dir='build'
+    mkdir build_dir
+    Dir.chdir build_dir do
+      system "cmake", "-DCMAKE_BUILD_TYPE=RELEASE",
+                      "-DCMAKE_INSTALL_PREFIX=#{prefix}", 
+                      ".."
+      system "make"
+      system "make install"
     end
   end
 
