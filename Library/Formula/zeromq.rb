@@ -2,7 +2,7 @@ require 'formula'
 
 class Zeromq < Formula
   url 'http://download.zeromq.org/zeromq-2.1.4.tar.gz'
-  head 'git://github.com/zeromq/zeromq2.git'
+  head 'git://github.com/zeromq/libzmq.git'
   homepage 'http://www.zeromq.org/'
   md5 'b9a8043792be3bfbf791e77bf3f259e8'
 
@@ -46,7 +46,7 @@ class Zeromq < Formula
   def caveats; <<-EOS.undent
     To install the zmq gem on 10.6 with the system Ruby on a 64-bit machine,
     you may need to do:
-      $ ARCHFLAGS="-arch x86_64" gem install zmq -- --with-zmq-dir=#{HOMEBREW_PREFIX}
+        ARCHFLAGS="-arch x86_64" gem install zmq -- --with-zmq-dir=#{HOMEBREW_PREFIX}
 
     If you want to later build the Java bindings from https://github.com/zeromq/jzmq,
     you will need to obtain the Java Developer Package from Apple ADC

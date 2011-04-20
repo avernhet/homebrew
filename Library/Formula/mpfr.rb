@@ -11,7 +11,13 @@ class Mpfr < Formula
     [["--32-bit", "Force 32-bit."]]
   end
 
+  def patches
+    {:p1 => ['http://www.mpfr.org/mpfr-3.0.1/allpatches']}
+  end
+
   def install
+    args = []
+
     if Hardware.is_32_bit? or ARGV.include? "--32-bit"
       ENV.m32
       args << "--host=none-apple-darwin"
@@ -21,7 +27,8 @@ class Mpfr < Formula
 
     system "./configure", "--disable-dependency-tracking", 
                           "--prefix=#{prefix}",
-                          "--with-gmp=#{Formula.factory('gmp').prefix}"
+                          "--with-gmp=#{Formula.factory('gmp').prefix}",
+                          *args
     system "make install"
   end
 end

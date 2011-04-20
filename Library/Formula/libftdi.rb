@@ -1,10 +1,9 @@
 require 'formula'
 
-class Libftdi <Formula
-  @homepage='http://www.intra2net.com/en/developer/libftdi'
-  @url="git://developer.intra2net.com/libftdi-1.0/"
-  # 0.18 for usb-1.0, not officially released yet + FTDI 2232H/4232H support
-  @version='0.18' 
+class Libftdi < Formula
+  url "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.18.tar.gz"
+  homepage 'http://www.intra2net.com/en/developer/libftdi'
+  md5 '916f65fa68d154621fc0cf1f405f2726'
 
   depends_on 'cmake' => :build
   depends_on 'pkg-config' => :build
