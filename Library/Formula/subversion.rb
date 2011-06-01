@@ -88,6 +88,8 @@ class Subversion < Formula
       check_neon_arch if build_universal?
     end
 
+    sqlite = Formula.factory('sqlite')
+
     # Use existing system zlib
     # Use dep-provided other libraries
     # Don't mess with Apache modules (since we're not sudo)
@@ -105,11 +107,21 @@ class Subversion < Formula
     args << "--enable-javahl" << "--without-jikes" if build_java?
     args << "--with-ruby-sitedir=#{lib}/ruby" if build_ruby?
     args << "--with-unicode-path" if with_unicode_path?
+    if sqlite.installed?
+        args << "--with-sqlite=#{Formula.factory('sqlite').prefix}"
+    end
 
     # Undo a bit of the MacPorts patch
     inreplace "configure", "@@DESTROOT@@/", ""
 
     system "./configure", *args
+    if sqlite.installed?
+      # dirty hack for https://github.com/mxcl/homebrew/issues/5080
+      # force static linkage with SQLite
+      inreplace "Makefile", /SVN_SQLITE_LIBS =.*$/, \
+        "SVN_SQLITE_LIBS = #{Formula.factory('sqlite').prefix}/lib/libsqlite3.a"
+      inreplace "Makefile", /\-lsqlite3/, ""
+    end
     system "make"
     system "make install"
 
