@@ -1,9 +1,9 @@
 require 'formula'
 
 class Gmp < Formula
-  url 'ftp://ftp.gnu.org/gnu/gmp/gmp-5.0.1.tar.bz2'
+  url 'ftp://ftp.gnu.org/gnu/gmp/gmp-5.0.2.tar.bz2'
   homepage 'http://gmplib.org/'
-  sha1 '6340edc7ceb95f9015a758c7c0d196eb0f441d49'
+  sha1 '2968220e1988eabb61f921d11e5d2db5431e0a35'
 
   def options
     [
