@@ -7,15 +7,15 @@ class NewLibArmEcos <Formula
 end
 
 class GppArmEcos <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.5.2/gcc-g++-4.5.2.tar.bz2'
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.5.3/gcc-g++-4.5.3.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      '7126d160b2a8bb6c9ee0fa39ec0edc25b761c121'
+  sha1      'fde6d16c2d4a2ab21abeaa7dc8e73e22557e8a2d'
 end
 
 class GccArmEcos <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.5.2/gcc-core-4.5.2.tar.bz2'
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.5.3/gcc-core-4.5.3.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      '130eb3828e7b16118388febdac4e7ff03f83119e'
+  sha1      '5edd2a4ae5a265df716550079995c0a0bc7be564'
 
   depends_on 'gmp'
   depends_on 'mpfr'
@@ -70,7 +70,7 @@ class GccArmEcos <Formula
                   "--with-libelf=#{Formula.factory('libelf').prefix}",
                   "--with-gxx-include-dir=#{prefix}/arm-eabi/include",
                   "--disable-debug", "--disable-__cxa_atexit",
-                  "--with-pkgversion=Neotion-SDK-Qiana",
+                  "--with-pkgversion=Neotion-SDK-Tylyn",
                   "--with-bugurl=http://www.neotion.com"
       system "make"
       system "make install"
