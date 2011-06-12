@@ -7,22 +7,16 @@ def build_ruby?; ARGV.include? "--ruby"; end
 def build_universal?; ARGV.build_universal?; end
 def with_unicode_path?; ARGV.include? '--unicode-path'; end
 
-# On 10.5 we need newer versions of apr, neon etc.
-# On 10.6 we only need a newer version of neon
-class SubversionDeps < Formula
-  url 'http://subversion.tigris.org/downloads/subversion-deps-1.6.17.tar.bz2'
-  sha1 'ebfda3416c09a91dbcf744a22ea83ed827ad3495'
-end
-
 class Subversion < Formula
   homepage 'http://subversion.apache.org/'
-  url 'http://subversion.tigris.org/downloads/subversion-1.6.17.tar.bz2'
-  sha1 '6e3ed7c87d98fdf5f0a999050ab601dcec6155a1'
+  url 'http://apache.cict.fr/subversion/subversion-1.7.0-alpha1.tar.gz'
+  version '1.7.0a1'
+  sha1 '212eaca54374a8e95ab5c6a15208870bbb339ae6'
 
   depends_on 'pkg-config' => :build
-
-  # On Snow Leopard, build a new neon. For Leopard, the deps above include this.
-  depends_on 'neon' if MacOS.snow_leopard?
+  depends_on 'libserf' # could be optional, but this package has already far
+                       # too many options. libserf is the recommended library
+                       # with SVN 1.7+ (vs. libneon)
 
   def options
     [
@@ -35,36 +29,10 @@ class Subversion < Formula
     ]
   end
 
-  def patches
-    # Patch to find Java headers
-    p = { :p0 =>
-      "http://trac.macports.org/export/73004/trunk/dports/devel/subversion-javahlbindings/files/patch-configure.diff"
-    }
-
-    # Patch for subversion handling of OS X Unicode paths (see caveats)
-    if with_unicode_path?
-      p[:p1] = "https://gist.github.com/raw/434424/subversion-unicode-path.patch"
-    end
-
-    return p
-  end
-
   def setup_leopard
     # Slot dependencies into place
     d=Pathname.getwd
     SubversionDeps.new.brew { d.install Dir['*'] }
-  end
-
-  def check_neon_arch
-    # Check that Neon was built universal if we are building w/ --universal
-    neon = Formula.factory('neon')
-    if neon.installed?
-      neon_arch = archs_for_command(neon.lib+'libneon.dylib')
-      unless neon_arch.universal?
-        opoo "A universal build was requested, but neon was already built for a single arch."
-        puts "You may need to `brew rm neon` first."
-      end
-    end
   end
 
   def install
@@ -84,8 +52,6 @@ class Subversion < Formula
 
     if MacOS.leopard?
       setup_leopard
-    else
-      check_neon_arch if build_universal?
     end
 
     # Use existing system zlib
@@ -94,10 +60,8 @@ class Subversion < Formula
     args = ["--disable-debug",
             "--prefix=#{prefix}",
             "--with-ssl",
-            "--with-zlib=/usr",
-            "--with-sqlite=/usr",
-            # use our neon, not OS X's
-            "--disable-neon-version-check",
+            "--without-neon",
+            "--with-serf=#{Formula.factory('libserf').prefix}",
             "--disable-mod-activation",
             "--without-apache-libexecdir",
             "--without-berkeley-db"]
