@@ -16,13 +16,21 @@ class Gettext < Formula
 
 
   def patches
+    p = {}
+
     unless ARGV.include? '--with-examples'
       # Use a MacPorts patch to disable building examples at all
       # rather than build them and remove them afterwards.
-      {:p0 =>
+      p[:p0] =
         "https://trac.macports.org/export/79183/trunk/dports/devel/gettext/files/patch-gettext-tools-Makefile.in"
-      }
     end
+
+    if MacOS.lion?
+      p[:p1] =
+        "https://raw.github.com/gist/1021461/39de02f13fc61c6281a35a88099982a1265413c0/gettext.patch"
+    end
+
+    return p
   end
 
   def install
