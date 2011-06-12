@@ -172,7 +172,7 @@ __END__
  #include <sys/stat.h>
  #include <unistd.h>
  #include <sys/mman.h>
-@@ -33,9 +42,27 @@
+@@ -33,9 +42,30 @@
  #include <errno.h>
  #include <string.h>
  #include <stdarg.h>
@@ -192,7 +192,10 @@ __END__
 +#endif /* __CYGWIN__ */
 +
 +#ifdef DARWIN
++#if ! defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || \
++    (__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 1070)
 +#include "cramfs/src/getline.c"
++#endif // OS X < 10.7
 +typedef long long int loff_t;
 +#define MAP_ANONYMOUS MAP_ANON
 +#endif /* DARWIN */
