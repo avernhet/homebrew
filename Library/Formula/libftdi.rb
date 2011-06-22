@@ -1,9 +1,9 @@
 require 'formula'
 
 class Libftdi < Formula
-  url "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.18.tar.gz"
+  url "git://developer.intra2net.com/libftdi-1.0/"
   homepage 'http://www.intra2net.com/en/developer/libftdi'
-  md5 '916f65fa68d154621fc0cf1f405f2726'
+  version '0.19dev'
 
   depends_on 'cmake' => :build
   depends_on 'pkg-config' => :build
@@ -17,7 +17,7 @@ class Libftdi < Formula
   def install
     mkdir 'libftdi-build'
     Dir.chdir 'libftdi-build' do
-      system "cmake .. #{std_cmake_parameters}"
+      system "cmake .. #{std_cmake_parameters} "
       system "make"
       system "make install"
     end
@@ -25,31 +25,30 @@ class Libftdi < Formula
 end
 
 __END__
---- a/CMakeLists.txt	2010-06-10 23:33:04.000000000 +0200
-+++ b/CMakeLists.txt	2010-06-11 00:01:57.000000000 +0200
-@@ -26,6 +26,11 @@
- # Find Boost (optional package)
- find_package(Boost)
+diff -u CMakeLists.txt  ~/Desktop/CMakeLists.txt 
+--- a/CMakeLists.txt	2010-06-25 17:04:04.000000000 +0200
++++ b/CMakeLists.txt	2011-06-22 18:40:48.000000000 +0200
+@@ -1,7 +1,7 @@
+ # Project
+ project(libftdi)
+ set(MAJOR_VERSION 0)
+-set(MINOR_VERSION 17)
++set(MINOR_VERSION 19)
+ set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION})
+ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
  
-+FIND_PACKAGE(Boost)
-+IF(Boost_FOUND)
-+  INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-+ENDIF(Boost_FOUND)
-+
- # Set components
- set(CPACK_COMPONENTS_ALL sharedlibs staticlibs headers)
- set(CPACK_COMPONENT_SHAREDLIBS_DISPLAY_NAME "Shared libraries")
-@@ -95,8 +100,6 @@
+@@ -95,9 +95,7 @@
  
  add_subdirectory(src)
  add_subdirectory(ftdipp)
 -add_subdirectory(bindings)
+ add_subdirectory(ftdi_eeprom)
 -add_subdirectory(examples)
  add_subdirectory(packages)
  
  
---- a/src/ftdi.c	2010-06-10 23:33:04.000000000 +0200
-+++ b/src/ftdi.c	2010-06-10 23:13:03.000000000 +0200
+--- a/src/ftdi.c	2010-06-25 17:36:53.000000000 +0200
++++ b/src/ftdi.c	2011-06-22 18:42:41.000000000 +0200
 @@ -48,6 +48,9 @@
     } while(0);
  
@@ -60,7 +59,7 @@ __END__
  /**
      Internal function to close usb device pointer.
      Sets ftdi->usb_dev to NULL.
-@@ -954,14 +957,28 @@
+@@ -975,14 +978,28 @@
      int divisor, best_divisor, best_baud, best_baud_diff;
      unsigned long encoded_divisor;
      int i;
@@ -91,7 +90,7 @@ __END__
  
      if (ftdi->type == TYPE_AM)
      {
-@@ -979,45 +996,49 @@
+@@ -1000,45 +1017,49 @@
          int baud_estimate;
          int baud_diff;
  
@@ -107,13 +106,13 @@ __END__
 -            try_divisor = 12;
 -        }
 -        else if (divisor < 16)
--        {
++        if ( ! hispeed )
+         {
 -            // AM doesn't support divisors 9 through 15 inclusive
 -            try_divisor = 16;
 -        }
 -        else
-+        if ( ! hispeed )
-         {
+-        {
 -            if (ftdi->type == TYPE_AM)
 +            // Round up to supported divisor value
 +            if (try_divisor <= 8)
@@ -142,7 +141,9 @@ __END__
              {
 -                if (try_divisor > 0x1FFFF)
 +                if (ftdi->type == TYPE_AM)
-+                {
+                 {
+-                    // Round down to maximum supported divisor value (for BM)
+-                    try_divisor = 0x1FFFF;
 +                    // Round up to supported fraction (AM only)
 +                    try_divisor += am_adjust_up[try_divisor & 7];
 +                    if (try_divisor > 0x1FFF8)
@@ -152,9 +153,7 @@ __END__
 +                    }
 +                }
 +                else
-                 {
--                    // Round down to maximum supported divisor value (for BM)
--                    try_divisor = 0x1FFFF;
++                {
 +                    if (try_divisor > 0x1FFFF)
 +                    {
 +                        // Round down to maximum supported divisor value (for BM)
@@ -170,7 +169,7 @@ __END__
          // Get absolute difference from requested baud rate
          if (baud_estimate < baudrate)
          {
-@@ -1060,7 +1081,13 @@
+@@ -1081,7 +1102,13 @@
          *index |= ftdi->index;
      }
      else
