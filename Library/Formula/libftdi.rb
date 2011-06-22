@@ -28,6 +28,22 @@ __END__
 diff -u CMakeLists.txt  ~/Desktop/CMakeLists.txt 
 --- a/CMakeLists.txt	2010-06-25 17:04:04.000000000 +0200
 +++ b/CMakeLists.txt	2011-06-22 18:40:48.000000000 +0200
+@@ -38,15 +38,6 @@
+ set(CPACK_COMPONENT_STATICLIBS_GROUP "Development")
+ set(CPACK_COMPONENT_HEADERS_GROUP    "Development")
+ 
+-# Create suffix to eventually install in lib64
+-IF(CMAKE_SIZEOF_VOID_P EQUAL 4)
+-    SET(LIB_SUFFIX "")
+-    SET(PACK_ARCH "")
+-  ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
+-    SET(LIB_SUFFIX 64)
+-    SET(PACK_ARCH .x86_64)
+-endif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+-
+ # Package information
+ set(CPACK_PACKAGE_VERSION              ${VERSION_STRING})
+ set(CPACK_PACKAGE_CONTACT              "Marek Vavrusa <marek@vavrusa.com>")
 @@ -85,8 +85,6 @@
  
  add_subdirectory(src)
