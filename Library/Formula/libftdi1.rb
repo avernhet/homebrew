@@ -1,14 +1,14 @@
 require 'formula'
 
-class Libftdi < Formula
-  url "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.19.tar.gz"
+class Libftdi1 < Formula
+  url "git://developer.intra2net.com/libftdi-1.0/"
   homepage 'http://www.intra2net.com/en/developer/libftdi'
-  md5 'e6e25f33b4327b1b7aa1156947da45f3'
+  version '0.19dev'
 
   depends_on 'cmake' => :build
   depends_on 'pkg-config' => :build
   depends_on 'boost'
-  depends_on 'libusb-compat'
+  depends_on 'libusb'
 
   def patches
     DATA
@@ -28,34 +28,28 @@ __END__
 diff -u CMakeLists.txt  ~/Desktop/CMakeLists.txt 
 --- a/CMakeLists.txt	2010-06-25 17:04:04.000000000 +0200
 +++ b/CMakeLists.txt	2011-06-22 18:40:48.000000000 +0200
-@@ -38,15 +38,6 @@
- set(CPACK_COMPONENT_STATICLIBS_GROUP "Development")
- set(CPACK_COMPONENT_HEADERS_GROUP    "Development")
+@@ -1,7 +1,7 @@
+ # Project
+ project(libftdi)
+ set(MAJOR_VERSION 0)
+-set(MINOR_VERSION 17)
++set(MINOR_VERSION 19)
+ set(VERSION_STRING ${MAJOR_VERSION}.${MINOR_VERSION})
+ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
  
--# Create suffix to eventually install in lib64
--IF(CMAKE_SIZEOF_VOID_P EQUAL 4)
--    SET(LIB_SUFFIX "")
--    SET(PACK_ARCH "")
--  ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
--    SET(LIB_SUFFIX 64)
--    SET(PACK_ARCH .x86_64)
--endif(CMAKE_SIZEOF_VOID_P EQUAL 4)
--
- # Package information
- set(CPACK_PACKAGE_VERSION              ${VERSION_STRING})
- set(CPACK_PACKAGE_CONTACT              "Marek Vavrusa <marek@vavrusa.com>")
-@@ -85,8 +85,6 @@
+@@ -95,9 +95,7 @@
  
  add_subdirectory(src)
  add_subdirectory(ftdipp)
 -add_subdirectory(bindings)
+ add_subdirectory(ftdi_eeprom)
 -add_subdirectory(examples)
  add_subdirectory(packages)
  
  
 --- a/src/ftdi.c	2010-06-25 17:36:53.000000000 +0200
 +++ b/src/ftdi.c	2011-06-22 18:42:41.000000000 +0200
-@@ -50,6 +50,9 @@
+@@ -48,6 +48,9 @@
     } while(0);
  
  
@@ -65,7 +59,7 @@ diff -u CMakeLists.txt  ~/Desktop/CMakeLists.txt
  /**
      Internal function to close usb device pointer.
      Sets ftdi->usb_dev to NULL.
-@@ -973,14 +976,28 @@
+@@ -975,14 +978,28 @@
      int divisor, best_divisor, best_baud, best_baud_diff;
      unsigned long encoded_divisor;
      int i;
@@ -96,7 +90,7 @@ diff -u CMakeLists.txt  ~/Desktop/CMakeLists.txt
  
      if (ftdi->type == TYPE_AM)
      {
-@@ -998,45 +1015,49 @@
+@@ -1000,45 +1017,49 @@
          int baud_estimate;
          int baud_diff;
  
@@ -107,13 +101,13 @@ diff -u CMakeLists.txt  ~/Desktop/CMakeLists.txt
 -            try_divisor = 8;
 -        }
 -        else if (ftdi->type != TYPE_AM && try_divisor < 12)
-+        if ( ! hispeed )
-         {
+-        {
 -            // BM doesn't support divisors 9 through 11 inclusive
 -            try_divisor = 12;
 -        }
 -        else if (divisor < 16)
--        {
++        if ( ! hispeed )
+         {
 -            // AM doesn't support divisors 9 through 15 inclusive
 -            try_divisor = 16;
 -        }
@@ -175,7 +169,7 @@ diff -u CMakeLists.txt  ~/Desktop/CMakeLists.txt
          // Get absolute difference from requested baud rate
          if (baud_estimate < baudrate)
          {
-@@ -1079,7 +1100,13 @@
+@@ -1081,7 +1102,13 @@
          *index |= ftdi->index;
      }
      else
