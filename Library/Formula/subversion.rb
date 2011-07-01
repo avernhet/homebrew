@@ -96,7 +96,6 @@ class Subversion < Formula
     args = ["--disable-debug",
             "--prefix=#{prefix}",
             "--with-ssl",
-            "--with-zlib=/usr",
             # use our neon, not OS X's
             "--disable-neon-version-check",
             "--disable-mod-activation",
