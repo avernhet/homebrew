@@ -1,6 +1,6 @@
 require 'formula'
 
-class BinutilsArmEcos <Formula
+class BinutilsArmEabi <Formula
   url 'http://ftp.gnu.org/gnu/binutils/binutils-2.21.tar.bz2'
   homepage 'http://www.gnu.org/software/binutils/'
   sha1 'ef93235588eb443e4c4a77f229a8d131bccaecc6'

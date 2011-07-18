@@ -1,18 +1,18 @@
 require 'formula'
 
-class NewLibArmEcos <Formula
+class NewLibArmEabi <Formula
   url       'ftp://sources.redhat.com/pub/newlib/newlib-1.19.0.tar.gz'
   homepage  'http://sourceware.org/newlib/'
   sha1      'b2269d30ce7b93b7c714b90ef2f40221c2df0fcd'
 end
 
-class GppArmEcos <Formula
+class GppArmEabi <Formula
   url       'http://ftpmirror.gnu.org/gcc/gcc-4.5.2/gcc-g++-4.5.2.tar.bz2'
   homepage  'http://gcc.gnu.org/'
   sha1      '7126d160b2a8bb6c9ee0fa39ec0edc25b761c121'
 end
 
-class GccArmEcos <Formula
+class GccArmEabi <Formula
   url       'http://ftpmirror.gnu.org/gcc/gcc-4.5.2/gcc-core-4.5.2.tar.bz2'
   homepage  'http://gcc.gnu.org/'
   sha1      '130eb3828e7b16118388febdac4e7ff03f83119e'
@@ -23,7 +23,7 @@ class GccArmEcos <Formula
   depends_on 'ppl'
   depends_on 'cloog-ppl'
   depends_on 'libelf'
-  depends_on 'binutils-arm-ecos'
+  depends_on 'binutils-arm-eabi'
 
   def patches
     DATA
@@ -36,8 +36,8 @@ class GccArmEcos <Formula
     # If anyone knows how to extract an archive into an existing directory
     # with homebrew, please - let me know!
     coredir = Dir.pwd
-    GppArmEcos.new.brew { system "ditto", Dir.pwd, coredir }
-    NewLibArmEcos.new.brew { 
+    GppArmEabi.new.brew { system "ditto", Dir.pwd, coredir }
+    NewLibArmEabi.new.brew { 
         system "ditto", Dir.pwd+'/libgloss', coredir+'/libgloss'
         system "ditto", Dir.pwd+'/newlib', coredir+'/newlib' 
     }
@@ -76,7 +76,7 @@ class GccArmEcos <Formula
       system "make install"
     end
 
-    ln_s "#{Formula.factory('binutils-arm-ecos').prefix}/arm-eabi/bin",
+    ln_s "#{Formula.factory('binutils-arm-eabi').prefix}/arm-eabi/bin",
                    "#{prefix}/arm-eabi/bin"
   end
 end
