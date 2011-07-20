@@ -9,9 +9,9 @@ def with_unicode_path?; ARGV.include? '--unicode-path'; end
 
 class Subversion < Formula
   homepage 'http://subversion.apache.org/'
-  url 'http://apache.multidist.com/subversion/subversion-1.7.0-alpha2.tar.bz2'
-  version '1.7.0a2'
-  sha1 '2c82a7247d3c86df3ac0671982e8853388ccc92b'
+  url 'http://apache.multidist.com/subversion/subversion-1.7.0-alpha3.tar.bz2'
+  version '1.7.0a3'
+  sha1 '886dcc0a98cd37f5c66a2fca11cd53463af68163'
 
   depends_on 'pkg-config' => :build
   depends_on 'libserf' # could be optional, but this package has already far
