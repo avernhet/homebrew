@@ -16,7 +16,9 @@ class Mpfr < Formula
   end
 
   def install
-    args = ["--disable-dependency-tracking", "--prefix=#{prefix}"]
+    args = ["--disable-dependency-tracking",
+            "--prefix=#{prefix}",
+            "--with-gmp=#{Formula.factory('gmp').prefix}"]
 
     # Build 32-bit where appropriate, and help configure find 64-bit CPUs
     # Note: This logic should match what the GMP formula does.
@@ -28,10 +30,7 @@ class Mpfr < Formula
       args << "--host=none-apple-darwin"
     end
 
-    system "./configure", "--disable-dependency-tracking", 
-                          "--prefix=#{prefix}",
-                          "--with-gmp=#{Formula.factory('gmp').prefix}",
-                          *args
+    system "./configure", *args
     system "make install"
   end
 end
