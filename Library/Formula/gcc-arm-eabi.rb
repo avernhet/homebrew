@@ -1,21 +1,21 @@
 require 'formula'
 
-class NewLibArmEcos <Formula
+class NewLibArmEabi <Formula
   url       'ftp://sources.redhat.com/pub/newlib/newlib-1.19.0.tar.gz'
   homepage  'http://sourceware.org/newlib/'
   sha1      'b2269d30ce7b93b7c714b90ef2f40221c2df0fcd'
 end
 
-class GppArmEcos <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.5.2/gcc-g++-4.5.2.tar.bz2'
+class GppArmEabi <Formula
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.1/gcc-g++-4.6.1.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      '7126d160b2a8bb6c9ee0fa39ec0edc25b761c121'
+  sha1      '043aa427ede603196588c2a2737c22e0d241ceca'
 end
 
-class GccArmEcos <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.5.2/gcc-core-4.5.2.tar.bz2'
+class GccArmEabi <Formula
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.1/gcc-core-4.6.1.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      '130eb3828e7b16118388febdac4e7ff03f83119e'
+  sha1      '9b766705f051ffb7321de58f247688b0ae661b98'
 
   depends_on 'gmp'
   depends_on 'mpfr'
@@ -23,7 +23,7 @@ class GccArmEcos <Formula
   depends_on 'ppl'
   depends_on 'cloog-ppl'
   depends_on 'libelf'
-  depends_on 'binutils-arm-ecos'
+  depends_on 'binutils-arm-eabi'
 
   def patches
     DATA
@@ -36,8 +36,8 @@ class GccArmEcos <Formula
     # If anyone knows how to extract an archive into an existing directory
     # with homebrew, please - let me know!
     coredir = Dir.pwd
-    GppArmEcos.new.brew { system "ditto", Dir.pwd, coredir }
-    NewLibArmEcos.new.brew { 
+    GppArmEabi.new.brew { system "ditto", Dir.pwd, coredir }
+    NewLibArmEabi.new.brew { 
         system "ditto", Dir.pwd+'/libgloss', coredir+'/libgloss'
         system "ditto", Dir.pwd+'/newlib', coredir+'/newlib' 
     }
@@ -67,24 +67,25 @@ class GccArmEcos <Formula
                   "--with-mpc=#{Formula.factory('libmpc').prefix}",
                   "--with-ppl=#{Formula.factory('ppl').prefix}",
                   "--with-cloog=#{Formula.factory('cloog-ppl').prefix}",
+                  "--enable-cloog-backend=ppl",
                   "--with-libelf=#{Formula.factory('libelf').prefix}",
                   "--with-gxx-include-dir=#{prefix}/arm-eabi/include",
                   "--disable-debug", "--disable-__cxa_atexit",
-                  "--with-pkgversion=Neotion-SDK-Qiana",
+                  "--with-pkgversion=Neotion-SDK-Tylyn",
                   "--with-bugurl=http://www.neotion.com"
       system "make"
       system "make install"
     end
 
-    ln_s "#{Formula.factory('binutils-arm-ecos').prefix}/arm-eabi/bin",
+    ln_s "#{Formula.factory('binutils-arm-eabi').prefix}/arm-eabi/bin",
                    "#{prefix}/arm-eabi/bin"
   end
 end
 
 __END__
---- a/gcc/config/arm/t-arm-elf	2008-06-12 19:29:47.000000000 +0200
-+++ b/gcc/config/arm/t-arm-elf	2010-01-14 00:44:48.000000000 +0100
-@@ -65,8 +65,8 @@
+--- a/gcc/config/arm/t-arm-elf	2011-01-03 21:52:22.000000000 +0100
++++ b/gcc/config/arm/t-arm-elf	2011-07-18 16:03:31.000000000 +0200
+@@ -71,8 +71,8 @@
  # MULTILIB_DIRNAMES   += fpu soft
  # MULTILIB_EXCEPTIONS += *mthumb/*mhard-float*
  # 
@@ -95,19 +96,9 @@ __END__
  # 
  # MULTILIB_OPTIONS    += fno-leading-underscore/fleading-underscore
  # MULTILIB_DIRNAMES   += elf under
---- a/gcc/config/386/i386.c	2010-07-23 18:20:40.000000000 +0200
-+++ b/gcc/config/i386/i386.c	2010-07-23 18:22:33.436581657 +0200
-@@ -4991,7 +4991,8 @@
-    case, we return the original mode and warn ABI change if CUM isn't
-    NULL.  */
- 
--static enum machine_mode
-+enum machine_mode type_natural_mode (const_tree, CUMULATIVE_ARGS *);
-+enum machine_mode
- type_natural_mode (const_tree type, CUMULATIVE_ARGS *cum)
- {
-   enum machine_mode mode = TYPE_MODE (type);
-@@ -5122,7 +5123,9 @@
+--- a/gcc/config/i386/i386.c	2011-06-18 11:07:20.000000000 +0200
++++ b/gcc/config/i386/i386.c	2011-07-18 16:03:31.000000000 +0200
+@@ -6145,7 +6145,9 @@
     See the x86-64 PS ABI for details.
  */
  
@@ -118,7 +109,7 @@ __END__
  classify_argument (enum machine_mode mode, const_tree type,
  		   enum x86_64_reg_class classes[MAX_CLASSES], int bit_offset)
  {
-@@ -5503,7 +5506,8 @@
+@@ -6526,7 +6528,8 @@
  
  /* Examine the argument and return set number of register required in each
     class.  Return 0 iff parameter should be passed in memory.  */
@@ -128,13 +119,3 @@ __END__
  examine_argument (enum machine_mode mode, const_tree type, int in_return,
  		  int *int_nregs, int *sse_nregs)
  {
-@@ -6184,7 +6188,8 @@
- 
- /* Return true when TYPE should be 128bit aligned for 32bit argument passing
-    ABI.  */
--static bool
-+bool contains_aligned_value_p (const_tree);
-+bool
- contains_aligned_value_p (const_tree type)
- {
-   enum machine_mode mode = TYPE_MODE (type);
