@@ -16,6 +16,13 @@ class Ppl < Formula
   def install
     ENV.append "CFLAGS", "-D__GMP_BITS_PER_MP_LIMB=GMP_NUMB_BITS"
     ENV.append "CXXFLAGS", "-D__GMP_BITS_PER_MP_LIMB=GMP_NUMB_BITS"
+    # Heavy GCC optimizations make each process to eat up to 700MiB of RAM.
+    # i5/i7 machines with less than 8GiB of RAM start swapping, which in turn
+    # dramatically slow down the compilation while leaving the machine hardly
+    # usable. Choose the safe way: do not parallelize the build as there is
+    # no simple way to choose a optimum job count based on processor_count/RAM
+    # ratio
+    ENV.deparallelize
     args = ["--prefix=#{prefix}",
             "--with-gmp=#{Formula.factory('gmp').prefix}",
             "--with-mpfr=#{Formula.factory('mpfr').prefix}",
