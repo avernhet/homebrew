@@ -1,9 +1,9 @@
 require 'formula'
 
 class Libserf < Formula
-  url 'http://serf.googlecode.com/files/serf-0.7.2.tar.bz2'
+  url 'http://serf.googlecode.com/files/serf-1.0.0.tar.bz2'
   homepage 'http://code.google.com/p/serf/'
-  sha1 '132fbb13d50c4f849231eee79dcada8cde3ecad2'
+  sha1 'f959f1b1a475d5a1c8957db0fd6ef915b3a7575d'
 
   def install
     system "./configure", "--disable-debug", "--disable-dependency-tracking",
