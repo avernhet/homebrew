@@ -9,11 +9,12 @@ def with_unicode_path?; ARGV.include? '--unicode-path'; end
 
 class Subversion < Formula
   homepage 'http://subversion.apache.org/'
-  url 'http://apache.multidist.com/subversion/subversion-1.7.0-rc4.tar.bz2'
-  version '1.7.0rc4'
-  sha1 '181324f85926570b4923bb79df7ef8fe3764b9be'
+  url 'http://apache.multidist.com/subversion/subversion-1.7.0.tar.bz2'
+  sha1 '3e514e0fba9c864d2d13763c22896d31496d7b0d'
 
   depends_on 'pkg-config' => :build
+  depends_on 'sqlite'  # could be optional, but many issues with dynamic
+                       # linking arised with the system's SQLite package
   depends_on 'libserf' # could be optional, but this package has already far
                        # too many options. libserf is the recommended library
                        # with SVN 1.7+ (vs. libneon)
@@ -54,8 +55,6 @@ class Subversion < Formula
       setup_leopard
     end
 
-    sqlite = Formula.factory('sqlite')
-
     # Use existing system zlib
     # Use dep-provided other libraries
     # Don't mess with Apache modules (since we're not sudo)
@@ -64,6 +63,7 @@ class Subversion < Formula
             "--with-ssl",
             "--without-neon",
             "--with-serf=#{Formula.factory('libserf').prefix}",
+            "--with-sqlite=#{Formula.factory('sqlite').prefix}",
             "--disable-mod-activation",
             "--without-apache-libexecdir",
             "--without-berkeley-db"]
@@ -71,21 +71,17 @@ class Subversion < Formula
     args << "--enable-javahl" << "--without-jikes" if build_java?
     args << "--with-ruby-sitedir=#{lib}/ruby" if build_ruby?
     args << "--with-unicode-path" if with_unicode_path?
-    if sqlite.installed?
-        args << "--with-sqlite=#{Formula.factory('sqlite').prefix}"
-    end
 
     # Undo a bit of the MacPorts patch
     inreplace "configure", "@@DESTROOT@@/", ""
 
     system "./configure", *args
-    if sqlite.installed?
-      # dirty hack for https://github.com/mxcl/homebrew/issues/5080
-      # force static linkage with SQLite
-      inreplace "Makefile", /SVN_SQLITE_LIBS =.*$/, \
-        "SVN_SQLITE_LIBS = #{Formula.factory('sqlite').prefix}/lib/libsqlite3.a"
-      inreplace "Makefile", /\-lsqlite3/, ""
-    end
+    # dirty hack for https://github.com/mxcl/homebrew/issues/5080
+    # force static linkage with SQLite
+    inreplace "Makefile", /SVN_SQLITE_LIBS =.*$/, \
+    "SVN_SQLITE_LIBS = #{Formula.factory('sqlite').prefix}/lib/libsqlite3.a"
+    inreplace "Makefile", /\-lsqlite3/, ""
+
     system "make"
     system "make install"
 
