@@ -14,6 +14,7 @@ class Libgcrypt < Formula
                           "--with-gpg-error-prefix=#{HOMEBREW_PREFIX}"
     # Separate steps, or parallel builds fail
     system "make"
+    system "make check"
     system "make install"
   end
 end
