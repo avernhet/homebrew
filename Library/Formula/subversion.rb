@@ -9,8 +9,8 @@ def with_unicode_path?; ARGV.include? '--unicode-path'; end
 
 class Subversion < Formula
   homepage 'http://subversion.apache.org/'
-  url 'http://apache.multidist.com/subversion/subversion-1.7.0.tar.bz2'
-  sha1 '3e514e0fba9c864d2d13763c22896d31496d7b0d'
+  url 'http://apache.multidist.com/subversion/subversion-1.7.1.tar.bz2'
+  sha1 '4bfaa8e33e9eaf26a504117cd91b23805518071a'
 
   depends_on 'pkg-config' => :build
   depends_on 'sqlite'  # could be optional, but many issues with dynamic
