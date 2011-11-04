@@ -7,21 +7,21 @@ class NewLibArmEabi <Formula
 end
 
 class GppArmEabi <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.1/gcc-g++-4.6.1.tar.bz2'
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.2/gcc-g++-4.6.2.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      '043aa427ede603196588c2a2737c22e0d241ceca'
+  sha1      'f0bc2b4e1c23c5dc1462599efd5df4b9807b23af'
 end
 
 class GccArmEabi <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.1/gcc-core-4.6.1.tar.bz2'
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.2/gcc-core-4.6.2.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      '9b766705f051ffb7321de58f247688b0ae661b98'
+  sha1      '23d259e2269a40f6e203cf6f57bc7eb7a207a8b3'
 
   depends_on 'gmp'
   depends_on 'mpfr'
   depends_on 'libmpc'
   depends_on 'ppl'
-  depends_on 'cloog-ppl'
+  depends_on 'cloog'
   depends_on 'libelf'
   depends_on 'binutils-arm-eabi'
 
@@ -66,8 +66,8 @@ class GccArmEabi <Formula
                   "--with-mpfr=#{Formula.factory('mpfr').prefix}",
                   "--with-mpc=#{Formula.factory('libmpc').prefix}",
                   "--with-ppl=#{Formula.factory('ppl').prefix}",
-                  "--with-cloog=#{Formula.factory('cloog-ppl').prefix}",
-                  "--enable-cloog-backend=ppl",
+                  "--with-cloog=#{Formula.factory('cloog').prefix}",
+                  "--enable-cloog-backend=isl",
                   "--with-libelf=#{Formula.factory('libelf').prefix}",
                   "--with-gxx-include-dir=#{prefix}/arm-eabi/include",
                   "--disable-debug", "--disable-__cxa_atexit",
