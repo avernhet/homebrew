@@ -10,7 +10,7 @@ class Cloog <Formula
 
   def install
     system "./configure", "--prefix=#{prefix}",
-                          "--with-gmp=#{Formula.factory('gmp').prefix}",
+                          "--with-gmp=#{Formula.factory('gmp').prefix}"
     # I am SO tired of the autotools mess...
     # Replace the buggy generated libtool with the Homebrew one
     File.unlink "libtool"

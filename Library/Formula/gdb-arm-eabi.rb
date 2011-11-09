@@ -9,7 +9,7 @@ class GdbArmEabi <Formula
   depends_on 'mpfr'
   depends_on 'ppl'
   depends_on 'libmpc'
-  depends_on 'cloog-ppl'
+  depends_on 'cloog'
 
   def install
     system "./configure", "--prefix=#{prefix}", "--target=arm-eabi",
@@ -17,8 +17,8 @@ class GdbArmEabi <Formula
                 "--with-mpfr=#{Formula.factory('mpfr').prefix}",
                 "--with-ppl=#{Formula.factory('ppl').prefix}",
                 "--with-mpc=#{Formula.factory('libmpc').prefix}",
-                "--with-cloog=#{Formula.factory('cloog-ppl').prefix}",
-                "--enable-cloog-backend=ppl", "--disable-werror"
+                "--with-cloog=#{Formula.factory('cloog').prefix}",
+                "--enable-cloog-backend=isl", "--disable-werror"
     system "make"
     system "make install"
   end
