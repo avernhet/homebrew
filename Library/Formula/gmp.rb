@@ -17,6 +17,7 @@ class Gmp < Formula
     # https://github.com/mxcl/homebrew/issues/issue/2302
     # Also force use of 4.2 on 10.6 in case a user has changed the default
     ENV.gcc_4_2
+    ENV['LD'] = '/usr/bin/ld'
 
     args = ["--prefix=#{prefix}", "--enable-cxx"]
 
