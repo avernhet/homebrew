@@ -1,9 +1,9 @@
 require 'formula'
 
 class Cloog < Formula
-  url 'http://www.bastoul.net/cloog/pages/download/count.php3?url=./cloog-0.16.3.tar.gz'
+  url 'http://www.bastoul.net/cloog/pages/download/count.php3?url=./cloog-0.17.0.tar.gz'
   homepage 'http://www.cloog.org/'
-  md5 'a0f8a241cd1c4f103f8d2c91642b3498'
+  md5 '0aa3302c81f65ca62c114e5264f8a802'
 
   depends_on 'pkg-config' => :build
   depends_on 'gmp'
