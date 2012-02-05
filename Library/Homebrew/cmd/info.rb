@@ -22,7 +22,7 @@ module Homebrew extend self
 
   def github_info name
     formula_name = Formula.path(name).basename
-    user = 'mxcl'
+    user = 'eblot'
     branch = 'master'
 
     if system "/usr/bin/which -s git"
