@@ -5,7 +5,6 @@ def build_perl?; ARGV.include? "--perl"; end
 def build_python?; ARGV.include? "--python"; end
 def build_ruby?; ARGV.include? "--ruby"; end
 def build_universal?; ARGV.build_universal?; end
-def with_unicode_path?; ARGV.include? '--unicode-path'; end
 
 class Subversion < Formula
   homepage 'http://subversion.apache.org/'
@@ -26,7 +25,6 @@ class Subversion < Formula
       ['--python', 'Build Python bindings.'],
       ['--ruby', 'Build Ruby bindings.'],
       ['--universal', 'Build as a Universal Intel binary.'],
-      ['--unicode-path', 'Include support for OS X unicode (but see caveats!)']
     ]
   end
 
@@ -38,7 +36,7 @@ class Subversion < Formula
 
   def install
     if build_java?
-      unless build_universal?
+      unless ARGV.build_universal?
         opoo "A non-Universal Java build was requested."
         puts "To use Java bindings with various Java IDEs, you might need a universal build:"
         puts "  brew install subversion --universal --java"
@@ -49,10 +47,8 @@ class Subversion < Formula
       end
     end
 
-    ENV.universal_binary if build_universal?
-
-    if MacOS.leopard?
-      setup_leopard
+    if ARGV.build_universal?
+      ENV.universal_binary
     end
 
     # Use existing system zlib
@@ -70,10 +66,6 @@ class Subversion < Formula
 
     args << "--enable-javahl" << "--without-jikes" if build_java?
     args << "--with-ruby-sitedir=#{lib}/ruby" if build_ruby?
-    args << "--with-unicode-path" if with_unicode_path?
-
-    # Undo a bit of the MacPorts patch
-    inreplace "configure", "@@DESTROOT@@/", ""
 
     system "./configure", *args
     # dirty hack for https://github.com/mxcl/homebrew/issues/5080
@@ -93,7 +85,7 @@ class Subversion < Formula
     if build_perl?
       ENV.j1 # This build isn't parallel safe
       # Remove hard-coded ppc target, add appropriate ones
-      if build_universal?
+      if ARGV.build_universal?
         arches = "-arch x86_64 -arch i386"
       elsif MacOS.leopard?
         arches = "-arch i386"
@@ -131,18 +123,6 @@ class Subversion < Formula
 
   def caveats
     s = ""
-
-    if with_unicode_path?
-      s += <<-EOS.undent
-        This unicode-path version implements a hack to deal with composed/decomposed
-        unicode handling on Mac OS X which is different from linux and windows.
-        It is an implementation of solution 1 from
-        http://svn.collab.net/repos/svn/trunk/notes/unicode-composition-for-filenames
-        which _WILL_ break some setups. Please be sure you understand what you
-        are asking for when you install this version.
-
-      EOS
-    end
 
     if build_python?
       s += <<-EOS.undent
