@@ -8,7 +8,7 @@ def build_universal?; ARGV.build_universal?; end
 
 class Subversion < Formula
   homepage 'http://subversion.apache.org/'
-  url 'http://www.apache.org/dist/subversion/subversion-1.7.3.tar.bz2'
+  url 'http://www.apache.org/dyn/closer.cgi?path=subversion/subversion-1.7.3.tar.bz2'
   sha1 '624d4070361c0e8d7cf4f5c667629e72459b122d'
 
   depends_on 'pkg-config' => :build
