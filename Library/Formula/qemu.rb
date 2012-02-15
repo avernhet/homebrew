@@ -15,10 +15,10 @@ class Qemu < Formula
   end
 
   def install
+    ENV.gcc_4_2
     system "./configure", "--prefix=#{prefix}",
-                          "--disable-darwin-user",
+                          "--disable-user",
                           "--enable-cocoa",
-                          "--disable-bsd-user",
                           "--disable-guest-agent"
     system "make install"
   end
