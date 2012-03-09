@@ -4,7 +4,6 @@ class Cppcheck < Formula
   url 'http://downloads.sourceforge.net/project/cppcheck/cppcheck/1.53/cppcheck-1.53.tar.bz2'
   homepage 'http://sourceforge.net/apps/mediawiki/cppcheck/index.php?title=Main_Page'
   md5 '18e8df419ba4c577bfb1d099653f8b2a'
-  head 'https://github.com/danmar/cppcheck.git'
 
   depends_on 'pcre' unless ARGV.include? '--no-rules'
   depends_on 'qt' if ARGV.include? '--with-gui'
@@ -32,15 +31,16 @@ class Cppcheck < Formula
     system "make", "DESTDIR=#{prefix}", "BIN=#{bin}", "install"
 
     if ARGV.include? '--with-gui'
-      Dir.chdir "gui"
-      if ARGV.include? '--no-rules'
-        system "qmake", "HAVE_RULES=no"
-      else
-        system "qmake"
-      end
+      cd "gui" do
+        if ARGV.include? '--no-rules'
+          system "qmake", "HAVE_RULES=no"
+        else
+          system "qmake"
+        end
 
-      system "make"
-      bin.install "cppcheck-gui.app"
+        system "make"
+        bin.install "cppcheck-gui.app"
+      end
     end
   end
 

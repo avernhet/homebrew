@@ -1,19 +1,19 @@
 require 'formula'
 
 class GitManuals < Formula
-  url 'http://git-core.googlecode.com/files/git-manpages-1.7.9.tar.gz'
-  sha1 '1ca1fc430b2814f9e9cf82ec3bf7f2eaf5209b7a'
+  url 'http://git-core.googlecode.com/files/git-manpages-1.7.9.3.tar.gz'
+  sha1 '223daa871a64facc60bdf643c50c78eac21c88f4'
 end
 
 class GitHtmldocs < Formula
-  url 'http://git-core.googlecode.com/files/git-htmldocs-1.7.9.tar.gz'
-  sha1 'c7b1fa20dc501beb2cb5091dd24dbfd2a0013a0c'
+  url 'http://git-core.googlecode.com/files/git-htmldocs-1.7.9.3.tar.gz'
+  sha1 '2d488c3975da1c2ea90965b82233a986c498a8c2'
 end
 
 class Git < Formula
   homepage 'http://git-scm.com'
-  url 'http://git-core.googlecode.com/files/git-1.7.9.tar.gz'
-  sha1 'ed51ef5ef250daaa6e98515cf2641820cd268d4c'
+  url 'http://git-core.googlecode.com/files/git-1.7.9.3.tar.gz'
+  sha1 '6216153da1139c25cb96cfb4441eff327013ec4f'
 
   depends_on 'pcre' if ARGV.include? '--with-pcre'
 
@@ -32,7 +32,7 @@ class Git < Formula
     ENV['NO_R_TO_GCC_LINKER'] = '1' # pass arguments to LD correctly
     ENV['NO_GETTEXT'] = '1'
     # workaround for users of perlbrew
-    ENV['PERL_PATH'] = `/usr/bin/which perl`.chomp
+    ENV['PERL_PATH'] = which 'perl'
 
     # Clean XCode 4.x installs don't include Perl MakeMaker
     ENV['NO_PERL_MAKEMAKER']='1' if MacOS.lion?
