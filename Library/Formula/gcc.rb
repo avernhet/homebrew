@@ -6,6 +6,12 @@ class Gpp <Formula
   sha1      'f0bc2b4e1c23c5dc1462599efd5df4b9807b23af'
 end
 
+class Gobjc <Formula
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.2/gcc-objc-4.6.2.tar.bz2'
+  homepage  'http://gcc.gnu.org/'
+  sha1      '32e5fbc31f1e8dd5e7c7e7ed9172afaf6136ea4e'
+end
+
 class Gcc <Formula
   url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.2/gcc-core-4.6.2.tar.bz2'
   homepage  'http://gcc.gnu.org/'
@@ -16,52 +22,32 @@ class Gcc <Formula
   depends_on 'libmpc'
   depends_on 'ppl'
   depends_on 'cloog'
-  depends_on 'libelf'
-
-  def patches
-    DATA
-  end
 
   def install
-    
-    # Ok, I stop fighting against Ruby (wish Homebrew was written in Python...)
-    # Use the ditto system command to replicate the directories
-    # If anyone knows how to extract an archive into an existing directory
-    # with homebrew, please - let me know!
+    ENV.gcc_4_2
+    ENV['LD'] = '/usr/bin/ld'
+
     coredir = Dir.pwd
     Gpp.new.brew { system "ditto", Dir.pwd, coredir }
-    
-    # Cannot build with LLVM (cross compiler crashes)
-    ENV.gcc_4_2
-    # Fix up CFLAGS for cross compilation (default switches cause build issues)
-    #ENV['CFLAGS_FOR_BUILD'] = "-O2"
-    #ENV['CFLAGS'] = "-O2"
-    #ENV['CFLAGS_FOR_TARGET'] = "-O2"
-    #ENV['CXXFLAGS_FOR_BUILD'] = "-O2"
-    #ENV['CXXFLAGS'] = "-O2"
-    #ENV['CXXFLAGS_FOR_TARGET'] = "-O2"
+    Gobjc.new.brew { system "ditto", Dir.pwd, coredir }
 
     build_dir='build'
     mkdir build_dir
     Dir.chdir build_dir do
-      system "../configure", "--prefix=#{prefix}", 
-                  #{ }"--with-gnu-as", "--with-gnu-ld",
-                  "--enable-shared", "--enable-lto", "--enable-plugin",  
-                  "--enable-languages=c,c++", "--enable-cloog-backend=isl",
+      system "../configure", "--prefix=#{prefix}",
+                  "--enable-shared", "--enable-lto", "--enable-plugin",
+                  "--enable-languages=c,c++,objc",
+                  "--enable-checking=release",
                   "--with-gmp=#{Formula.factory('gmp').prefix}",
                   "--with-mpfr=#{Formula.factory('mpfr').prefix}",
                   "--with-mpc=#{Formula.factory('libmpc').prefix}",
                   "--with-ppl=#{Formula.factory('ppl').prefix}",
                   "--with-cloog=#{Formula.factory('cloog').prefix}",
                   "--with-libelf=#{Formula.factory('libelf').prefix}",
-                  "--disable-debug"
+                  "--enable-cloog-backend=isl",
+                  "--disable-debug", "--disable-dependency-tracking"
       system "make"
       system "make install"
     end
-
-    #ln_s "#{Formula.factory('binutils-arm-eabi').prefix}/arm-eabi/bin",
-    #              "#{prefix}/arm-eabi/bin"
   end
 end
-
-__END__
