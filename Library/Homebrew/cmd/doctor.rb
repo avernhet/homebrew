@@ -166,6 +166,21 @@ def check_for_other_package_managers
   end
 end
 
+def check_for_broken_symlinks
+  broken_symlinks = []
+  %w[lib include sbin bin etc share].each do |d|
+    d = HOMEBREW_PREFIX/d
+    d.find do |pn|
+      broken_symlinks << pn if pn.symlink? and pn.readlink.expand_path.to_s =~ /^#{HOMEBREW_PREFIX}/ and not pn.exist?
+    end
+  end
+  unless broken_symlinks.empty? then <<-EOS.undent
+    Broken symlinks were found. Remove them with `brew prune':
+      #{broken_symlinks * "\n      "}
+    EOS
+  end
+end
+
 def check_gcc_42
   if MacOS.gcc_42_build_version == nil
     # Don't show this warning on Xcode 4.2+
@@ -208,20 +223,19 @@ def check_for_latest_xcode
     else "4.3"
   end
   if MacOS.xcode_version < latest_xcode then <<-EOS.undent
-    You have Xcode-#{MacOS.xcode_version}, which is outdated.
+    You have Xcode #{MacOS.xcode_version}, which is outdated.
     Please install Xcode #{latest_xcode}.
     EOS
   end
 end
 
 def check_cc
-  unless File.exist? '/usr/bin/cc'
-    <<-EOS.undent
-      You have no /usr/bin/cc.
-      This means you probably can't build *anything*. You need to install the CLI
-      Tools for Xcode. You can either download this from http://connect.apple.com/
-      or install them from inside Xcode’s preferences. Homebrew does not require
-      all of Xcode! You only need the CLI tools package!
+  unless File.exist? '/usr/bin/cc' then <<-EOS.undent
+    You have no /usr/bin/cc.
+    This means you probably can't build *anything*. You need to install the Command
+    Line Tools for Xcode. You can either download this from http://connect.apple.com
+    or install them from inside Xcode's Download preferences. Homebrew does not
+    require all of Xcode! You only need the Command Line Tools package!
     EOS
   end
 end
@@ -340,7 +354,7 @@ def check_xcode_prefix
   if prefix.to_s.match(' ')
     <<-EOS.undent
       Xcode is installed to a directory with a space in the name.
-      This will cause some formulae, such as libiconv, to fail to build.
+      This will cause some formulae to fail to build.
     EOS
   end
 end
@@ -363,6 +377,8 @@ def check_xcode_select_path
 
           sudo xcode-select -switch /Developer
           sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
+
+      DO NOT SET / OR EVERYTHING BREAKS!
     EOS
   end
 end
@@ -548,6 +564,16 @@ def check_for_dyld_vars
     <<-EOS.undent
       Setting DYLD_LIBRARY_PATH can break dynamic linking.
       You should probably unset it.
+    EOS
+  end
+end
+
+def check_for_DYLD_INSERT_LIBRARIES
+  if ENV['DYLD_INSERT_LIBRARIES']
+    <<-EOS.undent
+      Setting DYLD_INSERT_LIBRARIES can cause Go builds to fail.
+      Having this set is common if you use this software:
+        http://asepsis.binaryage.com/
     EOS
   end
 end
@@ -801,11 +827,11 @@ def check_for_bad_python_symlink
 end
 
 def check_for_outdated_homebrew
-  HOMEBREW_PREFIX.cd do
+  HOMEBREW_REPOSITORY.cd do
     timestamp = if File.directory? ".git"
       `git log -1 --format="%ct" HEAD`.to_i
     else
-      (HOMEBREW_PREFIX/"Library").mtime.to_i
+      (HOMEBREW_REPOSITORY/"Library").mtime.to_i
     end
 
     if Time.now.to_i - timestamp > 60 * 60 * 24 then <<-EOS.undent
@@ -813,6 +839,25 @@ def check_for_outdated_homebrew
       You haven't updated for at least 24 hours, this is a long time in brewland!
       EOS
     end
+  end
+end
+
+def check_for_unlinked_but_not_keg_only
+  unlinked = HOMEBREW_CELLAR.children.reject do |rack|
+    if not (HOMEBREW_REPOSITORY/"Library/LinkedKegs"/rack.basename).directory?
+      Formula.factory(rack.basename).keg_only? rescue nil
+    else
+      true
+    end
+  end.map{ |pn| pn.basename }
+
+  if not unlinked.empty? then <<-EOS.undent
+    You have unlinked kegs in your Cellar
+    Leaving kegs unlinked can lead to build-trouble and cause brews that depend on
+    those kegs to fail to run properly once built.
+
+        #{unlinked * "\n        "}
+    EOS
   end
 end
 
