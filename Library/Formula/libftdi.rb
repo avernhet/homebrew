@@ -1,9 +1,9 @@
 require 'formula'
 
 class Libftdi < Formula
-  url "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.19.tar.gz"
   homepage 'http://www.intra2net.com/en/developer/libftdi'
-  md5 'e6e25f33b4327b1b7aa1156947da45f3'
+  url "http://www.intra2net.com/en/developer/libftdi/download/libftdi-0.20.tar.gz"
+  md5 '355d4474e3faa81b485d6a604b06951f'
 
   depends_on 'pkg-config' => :build
   depends_on 'boost'

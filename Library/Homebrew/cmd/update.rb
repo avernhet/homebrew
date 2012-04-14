@@ -1,9 +1,10 @@
 require 'cmd/tap'
+require 'cmd/untap'
 
 module Homebrew extend self
 
   def update
-    abort "Please `brew install git' first." unless system "/usr/bin/which -s git"
+    abort "Please `brew install git' first." unless which_s "git"
 
     # ensure GIT_CONFIG is unset as we need to operate on .git/config
     ENV.delete('GIT_CONFIG')
@@ -26,6 +27,9 @@ module Homebrew extend self
         end
       end
     end
+
+    # we unlink first in case the formula has moved to another tap
+    Homebrew.unlink_tap_formula(report.removed_tapped_formula)
     Homebrew.link_tap_formula(report.new_tapped_formula)
 
     if report.empty?
@@ -76,14 +80,21 @@ class Updater
     @current_revision = read_current_revision
   end
 
+  # Matches raw git diff format (see `man git-diff-tree`)
+  DIFFTREE_RX = /^:[0-7]{6} [0-7]{6} [0-9a-fA-F]{40} [0-9a-fA-F]{40} ([ACDMR])\d{0,3}\t(.+?)(?:\t(.+))?$/
+
   def report
     map = Hash.new{ |h,k| h[k] = [] }
 
     if initial_revision && initial_revision != current_revision
-      changes = `git diff-tree -r --name-status -z #{initial_revision} #{current_revision}`.split("\0")
-      changes.each_slice(2) do |status, file|
-        file = Pathname.pwd.join(file).relative_path_from(HOMEBREW_REPOSITORY)
-        map[status.to_sym] << file.to_s
+      `git diff-tree -r --raw -M85% #{initial_revision} #{current_revision}`.each_line do |line|
+        DIFFTREE_RX.match line
+        path = case status = $1.to_sym
+          when :R then $3
+          else $2
+          end
+        path = Pathname.pwd.join(path).relative_path_from(HOMEBREW_REPOSITORY)
+        map[status] << path.to_s
       end
     end
 
@@ -93,7 +104,7 @@ class Updater
   private
 
   def read_current_revision
-    `git rev-parse HEAD`.chomp
+    `git rev-parse -q --verify HEAD`.chomp
   end
 
   def `(cmd)
@@ -121,19 +132,27 @@ class Report < Hash
 #    dump_deleted_commands
   end
 
-  def new_tapped_formula
-    fetch(:A, []).map do |path|
-      case path when %r{^Library/Taps(/\w+-\w+/.*)}
+  def tapped_formula_for key
+    fetch(key, []).map do |path|
+      case path when %r{^Library/Taps/(\w+-\w+/.*)}
         Pathname.new($1)
       end
     end.compact
+  end
+
+  def new_tapped_formula
+    tapped_formula_for :A
+  end
+
+  def removed_tapped_formula
+    tapped_formula_for :D
   end
 
   def select_formula key
     fetch(key, []).map do |path|
       case path when %r{^Library/Formula}
         File.basename(path, ".rb")
-      when %r{^Library/Taps/(\w+)-(\w+)/(.*)}
+      when %r{^Library/Taps/(\w+)-(\w+)/(.*)\.rb}
         "#$1/#$2/#{File.basename(path, '.rb')}"
       end
     end.compact.sort

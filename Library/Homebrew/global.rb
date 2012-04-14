@@ -61,24 +61,31 @@ end
 
 HOMEBREW_LOGS = Pathname.new('~/Library/Logs/Homebrew/').expand_path
 
-MACOS_FULL_VERSION = `/usr/bin/sw_vers -productVersion`.chomp
-MACOS_VERSION = /(10\.\d+)(\.\d+)?/.match(MACOS_FULL_VERSION).captures.first.to_f
+if RUBY_PLATFORM =~ /darwin/
+  MACOS_FULL_VERSION = `/usr/bin/sw_vers -productVersion`.chomp
+  MACOS_VERSION = /(10\.\d+)(\.\d+)?/.match(MACOS_FULL_VERSION).captures.first.to_f
+  OS_VERSION = "Mac OS X #{MACOS_FULL_VERSION}"
+  MACOS = true
+else
+  MACOS_FULL_VERSION = MACOS_VERSION = 0
+  OS_VERSION = RUBY_PLATFORM
+  MACOS = false
+end
 
-HOMEBREW_USER_AGENT = "Homebrew #{HOMEBREW_VERSION} (Ruby #{RUBY_VERSION}-#{RUBY_PATCHLEVEL}; Mac OS X #{MACOS_FULL_VERSION})"
+HOMEBREW_USER_AGENT = "Homebrew #{HOMEBREW_VERSION} (Ruby #{RUBY_VERSION}-#{RUBY_PATCHLEVEL}; #{OS_VERSION})"
 
 HOMEBREW_CURL_ARGS = '-qf#LA'
-
-RECOMMENDED_LLVM = 2326
-RECOMMENDED_GCC_40 = (MACOS_VERSION >= 10.6) ? 5494 : 5493
-RECOMMENDED_GCC_42 = (MACOS_VERSION >= 10.6) ? 5664 : 5577
 
 require 'fileutils'
 module Homebrew extend self
   include FileUtils
+
+  attr_accessor :failed
+  alias_method :failed?, :failed
 end
 
 FORMULA_META_FILES = %w[README README.md ChangeLog CHANGES COPYING LICENSE LICENCE COPYRIGHT AUTHORS]
-ISSUES_URL = "https://github.com/eblot/homebrew/wiki/checklist-before-filing-a-new-issue"
+ISSUES_URL = "https://github.com/eblot/homebrew/wiki/reporting-bugs"
 
 unless ARGV.include? "--no-compat" or ENV['HOMEBREW_NO_COMPAT']
   $:.unshift(File.expand_path("#{__FILE__}/../compat"))

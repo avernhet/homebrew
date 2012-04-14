@@ -6,6 +6,30 @@ def build_python?; ARGV.include? "--python"; end
 def build_ruby?; ARGV.include? "--ruby"; end
 def build_universal?; ARGV.build_universal?; end
 
+class UniversalNeon < Requirement
+  def message; <<-EOS.undent
+      A universal build was requested, but neon was already built for a single arch.
+      You may need to `brew rm neon` first.
+    EOS
+  end
+  def satisfied?
+    f = Formula.factory('neon')
+    !f.installed? || archs_for_command(f.lib+'libneon.dylib').universal?
+  end
+end
+
+class UniversalSqlite < Requirement
+  def message; <<-EOS.undent
+      A universal build was requested, but sqlite was already built for a single arch.
+      You may need to `brew rm sqlite` first.
+    EOS
+  end
+  def satisfied?
+    f = Formula.factory('sqlite')
+    !f.installed? || archs_for_command(f.lib+'libsqlite3.dylib').universal?
+  end
+end
+
 class Subversion < Formula
   homepage 'http://subversion.apache.org/'
   url 'http://www.apache.org/dyn/closer.cgi?path=subversion/subversion-1.7.4.tar.bz2'
@@ -18,6 +42,11 @@ class Subversion < Formula
                        # too many options. libserf is the recommended library
                        # with SVN 1.7+ (vs. libneon)
 
+  if ARGV.build_universal?
+    depends_on UniversalNeon.new
+    depends_on UniversalSqlite.new
+  end
+
   def options
     [
       ['--java', 'Build Java bindings.'],
@@ -26,12 +55,6 @@ class Subversion < Formula
       ['--ruby', 'Build Ruby bindings.'],
       ['--universal', 'Build as a Universal Intel binary.'],
     ]
-  end
-
-  def setup_leopard
-    # Slot dependencies into place
-    d=Pathname.getwd
-    SubversionDeps.new.brew { d.install Dir['*'] }
   end
 
   def install
@@ -45,10 +68,6 @@ class Subversion < Formula
       unless (ENV["JAVA_HOME"] or "").empty?
         opoo "JAVA_HOME is set. Try unsetting it if JNI headers cannot be found."
       end
-    end
-
-    if ARGV.build_universal?
-      ENV.universal_binary
     end
 
     # Use existing system zlib

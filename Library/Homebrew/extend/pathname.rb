@@ -8,8 +8,16 @@ class Pathname
     sources.each do |src|
       case src
       when Array
+        if src.empty?
+          opoo "tried to install empty array to #{self}"
+          return []
+        end
         src.each {|s| results << install_p(s) }
       when Hash
+        if src.empty?
+          opoo "tried to install empty hash to #{self}"
+          return []
+        end
         src.each {|s, new_basename| results << install_p(s, new_basename) }
       else
         results << install_p(src)
@@ -283,9 +291,26 @@ class Pathname
     self.dirname.mkpath
     Dir.chdir self.dirname do
       # NOTE only system ln -s will create RELATIVE symlinks
-      system 'ln', '-s', src.relative_path_from(self.dirname), self.basename
-      # ln outputs useful error message for us
-      raise "Could not create symlink: #{to_s}." unless $?.success?
+      quiet_system 'ln', '-s', src.relative_path_from(self.dirname), self.basename
+      if not $?.success?
+        if self.exist?
+          raise <<-EOS.undent
+            Could not symlink file: #{src.expand_path}
+            Target #{self} already exists. You may need to delete it.
+            EOS
+        elsif !dirname.writable?
+          raise <<-EOS.undent
+            Could not symlink file: #{src.expand_path}
+            #{dirname} is not writable. You should change its permissions.
+            EOS
+        else
+          raise <<-EOS.undent
+            Could not symlink file: #{src.expand_path}
+            #{self} may already exist.
+            #{dirname} may not be writable.
+            EOS
+        end
+      end
     end
   end
 
@@ -368,7 +393,6 @@ module ObserverPathnameExtension
   end
   def make_relative_symlink src
     super
-    puts "ln #{to_s}" if ARGV.verbose?
     $n+=1
   end
   def install_info

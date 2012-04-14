@@ -1,23 +1,20 @@
 require 'tab'
 require 'extend/ARGV'
 
-def bottle_filename f
-  "#{f.name}-#{f.version}#{bottle_native_suffix}"
+def bottle_filename f, bottle_version=nil
+  name = f.name.downcase
+  version = f.version || f.standard.detect_version
+  bottle_version = bottle_version || f.bottle_version
+  bottle_version_tag = bottle_version > 0 ? "-#{bottle_version}" : ""
+  "#{name}-#{version}#{bottle_version_tag}#{bottle_native_suffix}"
 end
 
 def bottles_supported?
-  HOMEBREW_PREFIX.to_s == '/usr/local' and HOMEBREW_CELLAR.to_s == '/usr/local/Cellar'
+  HOMEBREW_PREFIX.to_s == '/usr/local' and HOMEBREW_CELLAR.to_s == '/usr/local/Cellar' and Hardware.is_64_bit? || !MacOS.snow_leopard?
 end
 
 def install_bottle? f
-  !ARGV.build_from_source? && bottle_current?(f) && bottle_native?(f)
-end
-
-def bottle_native? f
-  return true if bottle_native_regex.match(f.bottle_url)
-  # old brew bottle style
-  return true if MacOS.lion? && old_bottle_regex.match(f.bottle_url)
-  return false
+  !ARGV.build_from_source? && bottle_current?(f)
 end
 
 def built_bottle? f
@@ -25,7 +22,12 @@ def built_bottle? f
 end
 
 def bottle_current? f
-  !f.bottle_url.nil? && Pathname.new(f.bottle_url).version == f.version
+  f.bottle_url && f.bottle_sha1 && Pathname.new(f.bottle_url).version == f.version
+end
+
+def bottle_new_version f
+  return 0 unless bottle_current? f
+  f.bottle_version + 1
 end
 
 def bottle_native_suffix
@@ -37,13 +39,17 @@ def bottle_suffix
 end
 
 def bottle_native_regex
-  /(\.#{MacOS.cat}\.bottle\.tar\.gz)$/
+  /((-\d+)?\.#{MacOS.cat}\.bottle\.tar\.gz)$/
 end
 
 def bottle_regex
-  /(\.[a-z]+\.bottle\.tar\.gz)$/
+  /((-\d+)?\.[a-z]+\.bottle\.tar\.gz)$/
 end
 
 def old_bottle_regex
   /(-bottle\.tar\.gz)$/
+end
+
+def bottle_base_url
+  "https://downloads.sf.net/project/machomebrew/Bottles/"
 end
