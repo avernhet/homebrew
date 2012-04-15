@@ -6,16 +6,10 @@ class NewLibArmEabi <Formula
   sha1      '65e7bdbeda0cbbf99c8160df573fd04d1cbe00d1'
 end
 
-class GppArmEabi <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.3/gcc-g++-4.6.3.tar.bz2'
-  homepage  'http://gcc.gnu.org/'
-  sha1      '528d010ee7af50e023bd4d476d65d08df71a7f65'
-end
-
 class GccArmEabi <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.3/gcc-core-4.6.3.tar.bz2'
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.7.0/gcc-4.7.0.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      'eaefb90df5a833c94560a8dda177bd1e165c2a88'
+  sha1      '03b8241477a9f8a34f6efe7273d92b9b6dd9fe82'
 
   depends_on 'gmp'
   depends_on 'mpfr'
@@ -36,14 +30,11 @@ class GccArmEabi <Formula
     # If anyone knows how to extract an archive into an existing directory
     # with homebrew, please - let me know!
     coredir = Dir.pwd
-    GppArmEabi.new.brew { system "ditto", Dir.pwd, coredir }
     NewLibArmEabi.new.brew { 
         system "ditto", Dir.pwd+'/libgloss', coredir+'/libgloss'
         system "ditto", Dir.pwd+'/newlib', coredir+'/newlib'
     }
 
-    # Cannot build with LLVM (cross compiler crashes)
-    ENV.gcc_4_2
     # Fix up CFLAGS for cross compilation (default switches cause build issues)
     ENV['CFLAGS_FOR_BUILD'] = "-O2"
     ENV['CFLAGS'] = "-O2"
@@ -76,9 +67,12 @@ class GccArmEabi <Formula
                   "--with-libelf=#{Formula.factory('libelf').prefix}",
                   "--with-gxx-include-dir=#{prefix}/arm-eabi/include",
                   "--disable-debug", "--disable-__cxa_atexit",
-                  "--with-pkgversion=Neotion-SDK-Yvette",
+                  "--with-pkgversion=Neotion-SDK2-Alpha",
                   "--with-bugurl=http://www.neotion.com"
       system "make"
+      # Temp. workaround until GCC installation script is fixed
+      mkdir "#{prefix}/arm-eabi/lib/fpu"
+      mkdir "#{prefix}/arm-eabi/lib/fpu/interwork"
       system "make install"
     end
 
