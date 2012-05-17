@@ -1,15 +1,24 @@
 require 'formula'
 
 class Qemu < Formula
-  url 'http://wiki.qemu.org/download/qemu-1.0.tar.gz'
   homepage 'http://www.qemu.org/'
-  md5 'a64b36067a191451323b0d34ebb44954'
+  url 'http://wiki.qemu.org/download/qemu-1.0.1.tar.gz'
+  sha1 '4d08b5a83538fcd7b222bec6f1c584da8d12497a'
 
   depends_on 'jpeg'
   depends_on 'gnutls'
+  depends_on 'glib'
 
-  fails_with :llvm do
-    cause "Segmentation faults occur at run-time with LLVM using qemu-system-arm."
+  fails_with :clang do
+    build 318
+  end
+
+  # Borrow these patches from MacPorts
+  def patches
+    { :p0 => [
+      "https://trac.macports.org/export/92470/trunk/dports/emulators/qemu/files/patch-configure.diff",
+      "https://trac.macports.org/export/92470/trunk/dports/emulators/qemu/files/patch-cocoa-uint16-redefined.diff"
+    ]}
   end
 
   def patches
@@ -19,7 +28,9 @@ class Qemu < Formula
   def install
     ENV.gcc_4_2
     system "./configure", "--prefix=#{prefix}",
-                          "--disable-user",
+                          "--cc=#{ENV.cc}",
+                          "--host-cc=#{ENV.cc}",
+                          "--disable-darwin-user",
                           "--enable-cocoa",
                           "--disable-guest-agent"
     system "make install"
