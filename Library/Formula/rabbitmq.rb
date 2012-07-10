@@ -2,8 +2,8 @@ require 'formula'
 
 class Rabbitmq < Formula
   homepage 'http://www.rabbitmq.com'
-  url 'http://www.rabbitmq.com/releases/rabbitmq-server/v2.8.2/rabbitmq-server-generic-unix-2.8.2.tar.gz'
-  md5 '7e9ae4f01341bff61c78bfe7e3ea17be'
+  url 'http://www.rabbitmq.com/releases/rabbitmq-server/v2.8.4/rabbitmq-server-generic-unix-2.8.4.tar.gz'
+  sha1 '75275083648fd9243c5bc212530355c76821c120'
 
   depends_on 'erlang'
   depends_on 'simplejson' => :python if MacOS.leopard?
@@ -30,7 +30,7 @@ class Rabbitmq < Formula
     enabled_plugins_path = etc+'rabbitmq/enabled_plugins'
     enabled_plugins_path.write enabled_plugins unless enabled_plugins_path.exist?
 
-    # Create the plist file      
+    # Create the plist file
     plist_path.write startup_plist
     plist_path.chmod 0644
   end
@@ -48,12 +48,12 @@ class Rabbitmq < Formula
         launchctl load -w ~/Library/LaunchAgents/#{plist_path.basename}
 
     Management Plugin enabled by default at http://localhost:55672
-    
+
     To start rabbitmq-server manually:
         rabbitmq-server
     EOS
   end
-  
+
   def enabled_plugins
     return <<-EOS.undent
       [rabbitmq_management,rabbitmq_management_visualiser].
@@ -64,10 +64,10 @@ class Rabbitmq < Formula
     return <<-EOS.undent
     CONFIG_FILE=#{etc}/rabbitmq/rabbitmq
     NODE_IP_ADDRESS=127.0.0.1
-    NODENAME=rabbit@localhost    
+    NODENAME=rabbit@localhost
     EOS
   end
-  
+
   def startup_plist
     return <<-EOPLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -96,7 +96,4 @@ class Rabbitmq < Formula
 </plist>
     EOPLIST
   end
-
 end
-
-__END__

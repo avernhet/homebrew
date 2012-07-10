@@ -1,17 +1,23 @@
 require 'formula'
 
-def build_java?; ARGV.include? "--java"; end
-def build_perl?; ARGV.include? "--perl"; end
+def build_java?;   ARGV.include? "--java";   end
+def build_perl?;   ARGV.include? "--perl";   end
 def build_python?; ARGV.include? "--python"; end
-def build_ruby?; ARGV.include? "--ruby"; end
+def build_ruby?;   ARGV.include? "--ruby";   end
+def with_unicode_path?; ARGV.include? "--unicode-path"; end
 def build_universal?; ARGV.build_universal?; end
 
 class UniversalNeon < Requirement
   def message; <<-EOS.undent
       A universal build was requested, but neon was already built for a single arch.
-      You may need to `brew rm neon` first.
+      You will need to `brew rm neon` first.
     EOS
   end
+
+  def fatal?
+    true
+  end
+
   def satisfied?
     f = Formula.factory('neon')
     !f.installed? || archs_for_command(f.lib+'libneon.dylib').universal?
@@ -21,12 +27,34 @@ end
 class UniversalSqlite < Requirement
   def message; <<-EOS.undent
       A universal build was requested, but sqlite was already built for a single arch.
-      You may need to `brew rm sqlite` first.
+      You will need to `brew rm sqlite` first.
     EOS
   end
+
+  def fatal?
+    true
+  end
+
   def satisfied?
     f = Formula.factory('sqlite')
     !f.installed? || archs_for_command(f.lib+'libsqlite3.dylib').universal?
+  end
+end
+
+class UniversalSerf < Requirement
+  def message; <<-EOS.undent
+      A universal build was requested, but serf was already built for a single arch.
+      You will need to `brew rm serf` first.
+    EOS
+  end
+
+  def fatal?
+    true
+  end
+
+  def satisfied?
+    f = Formula.factory('serf')
+    !f.installed? || archs_for_command(f.lib+'libserf-1.0.0.0.dylib').universal?
   end
 end
 
@@ -45,7 +73,11 @@ class Subversion < Formula
   if ARGV.build_universal?
     depends_on UniversalNeon.new
     depends_on UniversalSqlite.new
+    depends_on UniversalSerf.new
   end
+
+  # Building Ruby bindings requires libtool
+  depends_on 'libtool' if build_ruby? and MacOS.xcode_version >= "4.3"
 
   def options
     [
@@ -54,8 +86,26 @@ class Subversion < Formula
       ['--python', 'Build Python bindings.'],
       ['--ruby', 'Build Ruby bindings.'],
       ['--universal', 'Build as a Universal Intel binary.'],
+      ['--unicode-path', 'Include support for OS X UTF-8-MAC filename'],
     ]
   end
+
+  def patches
+    # Patch for Subversion handling of OS X UTF-8-MAC filename.
+    if with_unicode_path?
+      { :p0 =>
+      "https://raw.github.com/gist/1900750/4888cafcf58f7355e2656fe192a77e2b6726e338/patch-path.c.diff"
+      }
+    end
+  end
+
+  # When building Perl, Python or Ruby bindings, need to use a compiler that
+  # recognizes GCC-style switches, since that's what the system languages
+  # were compiled against.
+  fails_with :clang do
+    build 318
+    cause "core.c:1: error: bad value (native) for -march= switch"
+  end if build_perl? or build_python? or build_ruby?
 
   def install
     if build_java?
@@ -79,6 +129,9 @@ class Subversion < Formula
             "--without-neon",
             "--with-serf=#{Formula.factory('libserf').prefix}",
             "--with-sqlite=#{Formula.factory('sqlite').prefix}",
+            "--with-zlib=/usr",
+            "--with-sqlite=#{HOMEBREW_PREFIX}",
+            "--with-serf=#{HOMEBREW_PREFIX}",
             "--disable-mod-activation",
             "--without-apache-libexecdir",
             "--without-berkeley-db"]
@@ -115,16 +168,14 @@ class Subversion < Formula
         arches = "-arch x86_64"
       end
 
-      # Use version-appropriate system Perl
-     if MacOS.leopard?
-        perl_version = "5.8.8"
-      else
-        perl_version = "5.10.0"
+      perl_core = Pathname.new(`perl -MConfig -e 'print $Config{archlib}'`)+'CORE'
+      unless perl_core.exist?
+        onoe "perl CORE directory does not exist in '#{perl_core}'"
       end
 
       inreplace "Makefile" do |s|
         s.change_make_var! "SWIG_PL_INCLUDES",
-          "$(SWIG_INCLUDES) #{arches} -g -pipe -fno-common -DPERL_DARWIN -fno-strict-aliasing -I/usr/local/include -I/System/Library/Perl/#{perl_version}/darwin-thread-multi-2level/CORE"
+          "$(SWIG_INCLUDES) #{arches} -g -pipe -fno-common -DPERL_DARWIN -fno-strict-aliasing -I/usr/local/include -I#{perl_core}"
       end
       system "make swig-pl"
       system "make install-swig-pl"
@@ -167,6 +218,18 @@ class Subversion < Formula
         You may need to link the Java bindings into the Java Extensions folder:
           sudo mkdir -p /Library/Java/Extensions
           sudo ln -s #{HOMEBREW_PREFIX}/lib/libsvnjavahl-1.dylib /Library/Java/Extensions/libsvnjavahl-1.dylib
+
+      EOS
+    end
+
+    if with_unicode_path?
+      s += <<-EOS.undent
+        This unicode-path version implements a hack to deal with composed/decomposed
+        unicode handling on Mac OS X which is different from linux and windows.
+        It is an implementation of solution 1 from
+        http://svn.collab.net/repos/svn/trunk/notes/unicode-composition-for-filenames
+        which _WILL_ break some setups. Please be sure you understand what you
+        are asking for when you install this version.
 
       EOS
     end

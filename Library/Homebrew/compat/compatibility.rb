@@ -87,6 +87,16 @@ class Formula
     @cc_failures ||= CompilerFailures.new
     @cc_failures << fails_with_llvm_reason
   end
+
+  def std_cmake_parameters
+    "-DCMAKE_INSTALL_PREFIX='#{prefix}' -DCMAKE_BUILD_TYPE=None -DCMAKE_FIND_FRAMEWORK=LAST -Wno-dev"
+  end
+
+  class << self
+    def bottle_sha1 val=nil
+      val.nil? ? @bottle_sha1 : @bottle_sha1 = val
+    end
+  end
 end
 
 class UnidentifiedFormula < Formula
