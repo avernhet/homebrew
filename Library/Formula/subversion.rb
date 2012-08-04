@@ -77,7 +77,7 @@ class Subversion < Formula
   end
 
   # Building Ruby bindings requires libtool
-  depends_on 'libtool' if build_ruby? and MacOS.xcode_version >= "4.3"
+  depends_on :libtool if build_ruby?
 
   def options
     [
@@ -91,11 +91,20 @@ class Subversion < Formula
   end
 
   def patches
+    ps = []
+
     # Patch for Subversion handling of OS X UTF-8-MAC filename.
     if with_unicode_path?
-      { :p0 =>
-      "https://raw.github.com/gist/1900750/4888cafcf58f7355e2656fe192a77e2b6726e338/patch-path.c.diff"
-      }
+      ps << "https://raw.github.com/gist/3044094/1648c28f6133bcbb68b76b42669b0dc237c02dba/patch-path.c.diff"
+    end
+
+    # Patch to prevent '-arch ppc' from being pulled in from Perl's $Config{ccflags}
+    if build_perl?
+      ps << DATA
+    end
+
+    unless ps.empty?
+      { :p0 => ps }
     end
   end
 
@@ -151,6 +160,7 @@ class Subversion < Formula
 
     system "make"
     system "make install"
+    (prefix+'etc/bash_completion.d').install 'tools/client-side/bash_completion' => 'subversion'
 
     if build_python?
       system "make swig-py"
@@ -259,3 +269,20 @@ __END__
    if test -z "$ac_lib"; then
      ac_res="none required"
    else
+--- subversion/bindings/swig/perl/native/Makefile.PL.in~	2011-07-16 04:47:59.000000000 -0700
++++ subversion/bindings/swig/perl/native/Makefile.PL.in	2012-06-27 17:45:57.000000000 -0700
+@@ -57,10 +57,13 @@
+ 
+ chomp $apr_shlib_path_var;
+ 
++my $config_ccflags = $Config{ccflags};
++$config_ccflags =~ s/-arch\s+\S+//g; # remove any -arch arguments, since the ones we want will already be in $cflags
++
+ my %config = (
+     ABSTRACT => 'Perl bindings for Subversion',
+     DEFINE => $cppflags,
+-    CCFLAGS => join(' ', $cflags, $Config{ccflags}),
++    CCFLAGS => join(' ', $cflags, $config_ccflags),
+     INC  => join(' ',$apr_cflags, $apu_cflags,
+                  " -I$swig_srcdir/perl/libsvn_swig_perl",
+                  " -I$svnlib_srcdir/include",
