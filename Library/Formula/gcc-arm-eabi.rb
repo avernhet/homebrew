@@ -7,9 +7,9 @@ class NewLibArmEabi <Formula
 end
 
 class GccArmEabi <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.7.0/gcc-4.7.0.tar.bz2'
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.7.1/gcc-4.7.1.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      '03b8241477a9f8a34f6efe7273d92b9b6dd9fe82'
+  sha1      '3ab74e63a8f2120b4f2c5557f5ffec6907337137'
 
   depends_on 'gmp'
   depends_on 'mpfr'
@@ -36,6 +36,8 @@ class GccArmEabi <Formula
     }
 
     # Fix up CFLAGS for cross compilation (default switches cause build issues)
+    ENV['CC'] = "gcc"
+    ENV['CXX'] = "gcc"
     ENV['CFLAGS_FOR_BUILD'] = "-O2"
     ENV['CFLAGS'] = "-O2"
     ENV['CFLAGS_FOR_TARGET'] = "-O2"
@@ -51,29 +53,28 @@ class GccArmEabi <Formula
     mkdir build_dir
     Dir.chdir build_dir do
       system "../configure", "--prefix=#{prefix}", "--target=arm-eabi",
-                  "--enable-shared", "--with-gnu-as", "--with-gnu-ld",
+                  "--disable-shared", "--with-gnu-as", "--with-gnu-ld",
                   "--with-newlib", "--enable-softfloat", "--disable-bigendian",
                   "--disable-fpu", "--disable-underscore", "--enable-multilibs",
                   "--with-float=soft", "--enable-interwork", "--enable-lto",
-                  "--enable-plugin", "--with-multilib-list=interwork",
+                  "--with-multilib-list=interwork",
                   "--with-abi=aapcs", "--enable-languages=c,c++",
                   "--with-gmp=#{Formula.factory('gmp').prefix}",
                   "--with-mpfr=#{Formula.factory('mpfr').prefix}",
                   "--with-mpc=#{Formula.factory('libmpc').prefix}",
-                  "--with-ppl=#{Formula.factory('ppl').prefix}",
                   "--with-cloog=#{Formula.factory('cloog').prefix}",
                   "--enable-cloog-backend=isl",
                   "--disable-cloog-version-check",
                   "--with-libelf=#{Formula.factory('libelf').prefix}",
                   "--with-gxx-include-dir=#{prefix}/arm-eabi/include",
                   "--disable-debug", "--disable-__cxa_atexit",
-                  "--with-pkgversion=Neotion-SDK2-Alpha",
+                  "--with-pkgversion=Neotion-SDK2-Celeborn",
                   "--with-bugurl=http://www.neotion.com"
-      system "make"
       # Temp. workaround until GCC installation script is fixed
       mkdir "#{prefix}/arm-eabi/lib/fpu"
       mkdir "#{prefix}/arm-eabi/lib/fpu/interwork"
-      system "make install"
+      system "make"
+      system "make -k install"
     end
 
     ln_s "#{Formula.factory('binutils-arm-eabi').prefix}/arm-eabi/bin",
@@ -82,6 +83,21 @@ class GccArmEabi <Formula
 end
 
 __END__
+--- a/configure	2012-08-09 22:19:34.000000000 +0200
++++ b/configure	2012-08-09 22:19:57.000000000 +0200
+@@ -5689,12 +5689,6 @@
+ int
+ main ()
+ {
+-
+-    #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 11
+-    choke me
+-    #endif
+-
+-  ;
+   return 0;
+ }
+ _ACEOF
 --- a/gcc/config/arm/t-arm-elf	2011-01-03 21:52:22.000000000 +0100
 +++ b/gcc/config/arm/t-arm-elf	2011-07-18 16:03:31.000000000 +0200
 @@ -71,8 +71,8 @@

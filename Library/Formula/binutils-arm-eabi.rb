@@ -10,9 +10,14 @@ class BinutilsArmEabi <Formula
   depends_on 'ppl'
   depends_on 'cloog'
 
+  def patches
+    # discard PPL version test, as binutils 2.22 expect 0.11+, not 1.0+
+    DATA
+  end
+
   def install
     system "./configure", "--prefix=#{prefix}", "--target=arm-eabi",
-                "--disable-shared", "--enable-plugins", "--disable-nls",
+                "--disable-shared", "--disable-nls",
                 "--with-gmp=#{Formula.factory('gmp').prefix}",
                 "--with-mpfr=#{Formula.factory('mpfr').prefix}",
                 "--with-ppl=#{Formula.factory('ppl').prefix}",
@@ -25,3 +30,20 @@ class BinutilsArmEabi <Formula
     system "make install"
   end
 end
+
+__END__
+--- a/configure	2012-08-09 22:02:06.000000000 +0200
++++ b/configure	2012-08-09 22:06:14.000000000 +0200
+@@ -5662,12 +5662,6 @@
+ int
+ main ()
+ {
+-
+-    #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 11
+-    choke me
+-    #endif
+-
+-  ;
+   return 0;
+ }
+ _ACEOF
