@@ -1,27 +1,21 @@
 require 'formula'
 
 class NewLibArmEabi <Formula
-  url       'ftp://sources.redhat.com/pub/newlib/newlib-1.19.0.tar.gz'
+  url       'ftp://sources.redhat.com/pub/newlib/newlib-1.20.0.tar.gz'
   homepage  'http://sourceware.org/newlib/'
-  sha1      'b2269d30ce7b93b7c714b90ef2f40221c2df0fcd'
-end
-
-class GppArmEabi <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.1/gcc-g++-4.6.1.tar.bz2'
-  homepage  'http://gcc.gnu.org/'
-  sha1      '043aa427ede603196588c2a2737c22e0d241ceca'
+  sha1      '65e7bdbeda0cbbf99c8160df573fd04d1cbe00d1'
 end
 
 class GccArmEabi <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.6.1/gcc-core-4.6.1.tar.bz2'
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.7.0/gcc-4.7.0.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      '9b766705f051ffb7321de58f247688b0ae661b98'
+  sha1      '03b8241477a9f8a34f6efe7273d92b9b6dd9fe82'
 
   depends_on 'gmp'
   depends_on 'mpfr'
   depends_on 'libmpc'
   depends_on 'ppl'
-  depends_on 'cloog-ppl'
+  depends_on 'cloog'
   depends_on 'libelf'
   depends_on 'binutils-arm-eabi'
 
@@ -30,20 +24,17 @@ class GccArmEabi <Formula
   end
 
   def install
-    
+
     # Ok, I stop fighting against Ruby (wish Homebrew was written in Python...)
     # Use the ditto system command to replicate the directories
     # If anyone knows how to extract an archive into an existing directory
     # with homebrew, please - let me know!
     coredir = Dir.pwd
-    GppArmEabi.new.brew { system "ditto", Dir.pwd, coredir }
     NewLibArmEabi.new.brew { 
         system "ditto", Dir.pwd+'/libgloss', coredir+'/libgloss'
-        system "ditto", Dir.pwd+'/newlib', coredir+'/newlib' 
+        system "ditto", Dir.pwd+'/newlib', coredir+'/newlib'
     }
-    
-    # Cannot build with LLVM (cross compiler crashes)
-    ENV.gcc_4_2
+
     # Fix up CFLAGS for cross compilation (default switches cause build issues)
     ENV['CFLAGS_FOR_BUILD'] = "-O2"
     ENV['CFLAGS'] = "-O2"
@@ -51,6 +42,10 @@ class GccArmEabi <Formula
     ENV['CXXFLAGS_FOR_BUILD'] = "-O2"
     ENV['CXXFLAGS'] = "-O2"
     ENV['CXXFLAGS_FOR_TARGET'] = "-O2"
+
+    # GCC 4.6.x explictly looks for CLooG 0.16, and we use 0.17
+    # Hack from http://joelinoff.com/blog/?p=108
+    inreplace 'gcc/graphite-clast-to-gimple.c', ' LANGUAGE_C', ' CLOOG_LANGUAGE_C'
 
     build_dir='build'
     mkdir build_dir
@@ -60,20 +55,24 @@ class GccArmEabi <Formula
                   "--with-newlib", "--enable-softfloat", "--disable-bigendian",
                   "--disable-fpu", "--disable-underscore", "--enable-multilibs",
                   "--with-float=soft", "--enable-interwork", "--enable-lto",
-                  "--enable-plugin", "--with-multilib-list=interwork", 
+                  "--enable-plugin", "--with-multilib-list=interwork",
                   "--with-abi=aapcs", "--enable-languages=c,c++",
                   "--with-gmp=#{Formula.factory('gmp').prefix}",
                   "--with-mpfr=#{Formula.factory('mpfr').prefix}",
                   "--with-mpc=#{Formula.factory('libmpc').prefix}",
                   "--with-ppl=#{Formula.factory('ppl').prefix}",
-                  "--with-cloog=#{Formula.factory('cloog-ppl').prefix}",
-                  "--enable-cloog-backend=ppl",
+                  "--with-cloog=#{Formula.factory('cloog').prefix}",
+                  "--enable-cloog-backend=isl",
+                  "--disable-cloog-version-check",
                   "--with-libelf=#{Formula.factory('libelf').prefix}",
                   "--with-gxx-include-dir=#{prefix}/arm-eabi/include",
                   "--disable-debug", "--disable-__cxa_atexit",
-                  "--with-pkgversion=Neotion-SDK-Tylyn",
+                  "--with-pkgversion=Neotion-SDK2-Alpha",
                   "--with-bugurl=http://www.neotion.com"
       system "make"
+      # Temp. workaround until GCC installation script is fixed
+      mkdir "#{prefix}/arm-eabi/lib/fpu"
+      mkdir "#{prefix}/arm-eabi/lib/fpu/interwork"
       system "make install"
     end
 
