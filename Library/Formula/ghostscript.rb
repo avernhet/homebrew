@@ -13,17 +13,17 @@ class Ghostscript < Formula
 
   head 'git://git.ghostscript.com/ghostpdl.git'
 
+  if ARGV.build_head?
+    depends_on :automake
+    depends_on :libtool
+  end
+
   depends_on 'pkg-config' => :build
   depends_on 'jpeg'
   depends_on 'libtiff'
   depends_on 'jbig2dec'
   depends_on 'little-cms2'
   depends_on :libpng
-
-  if ARGV.build_head? and MacOS.xcode_version >= "4.3"
-    depends_on "automake" => :build
-    depends_on "libtool" => :build
-  end
 
   def move_included_source_copies
     # If the install version of any of these doesn't match
@@ -39,7 +39,7 @@ class Ghostscript < Formula
   def install
     ENV.deparallelize
     # ghostscript configure ignores LDFLAGs apparently
-    ENV['LIBS'] = "-L#{MacOS.x11_prefix}/lib"
+    ENV['LIBS'] = "-L#{MacOS::XQuartz.lib}"
 
     src_dir = ARGV.build_head? ? "gs" : "."
 

@@ -29,6 +29,7 @@ class Keg < Pathname
 
   def unlink
     n=0
+
     %w[bin etc lib include sbin share var].map{ |d| self/d }.each do |src|
       next unless src.exist?
       src.find do |src|
@@ -179,7 +180,7 @@ protected
           dst.mkpath unless resolve_any_conflicts(dst)
         else
           unless resolve_any_conflicts(dst)
-            make_relative_symlink dst, src
+            make_relative_symlink dst, src, mode
             Find.prune
           end
         end
