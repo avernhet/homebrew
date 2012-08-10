@@ -3,25 +3,26 @@ require 'formula'
 class Cairo < Formula
   homepage 'http://cairographics.org/'
   url 'http://cairographics.org/releases/cairo-1.12.2.tar.xz'
-  sha1 'bc2ee50690575f16dab33af42a2e6cdc6451e3f9'
-
-  depends_on 'pkg-config' => :build
-  depends_on 'xz'=> :build
-  depends_on 'pixman'
-  depends_on :x11
+  sha256 'b786bc4a70542bcb09f2d9d13e5e6a0c86408cbf6d1edde5f0de807eecf93f96'
 
   keg_only :provided_by_osx,
-            "The Cairo provided by Leopard is too old for newer software to link against."
+    "The Cairo provided by Leopard is too old for newer software to link against." \
+    if MacOS::X11.installed?
 
-  def options
-    [['--universal', 'Build a universal library']]
-  end
+  option :universal
+  option 'without-x', 'Build without X11 support'
+
+  depends_on :libpng
+  depends_on 'pixman'
+  depends_on 'pkg-config' => :build
+  depends_on 'xz'=> :build
+  depends_on :x11 unless build.include? 'without-x'
 
   # Fixes a build error with clang & universal, where a function was implicit.
   def patches; DATA; end
 
   def install
-    ENV.universal_binary if ARGV.build_universal?
+    ENV.universal_binary if build.universal?
 
     pixman = Formula.factory('pixman')
     ENV['pixman_CFLAGS'] = "-I#{pixman.include}/pixman-1"
@@ -30,8 +31,9 @@ class Cairo < Formula
     args = %W[
       --disable-dependency-tracking
       --prefix=#{prefix}
-      --with-x]
+    ]
 
+    args << '--with-x' unless build.include? 'without-x'
     args << '--enable-xcb=no' if MacOS.leopard?
 
     system "./configure", *args

@@ -2,14 +2,12 @@ require 'formula'
 
 class Ninja < Formula
   homepage 'https://github.com/martine/ninja'
+  url 'https://github.com/martine/ninja/tarball/release-120715'
+  sha1 '623e7e86f05c76fe8ea8b5ce72f2a3a2a891ff38'
   head 'git://github.com/martine/ninja.git'
-
-  # depends_on 'cmake' => :build
 
   def install
     system "./bootstrap.py"
-    system "mkdir -p #{prefix}/bin"
-    system "cp ninja #{prefix}/bin/"
+    bin.install "ninja"
   end
-
 end
