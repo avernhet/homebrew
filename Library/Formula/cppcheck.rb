@@ -1,9 +1,10 @@
 require 'formula'
 
 class Cppcheck < Formula
-  url 'http://downloads.sourceforge.net/project/cppcheck/cppcheck/1.53/cppcheck-1.53.tar.bz2'
   homepage 'http://sourceforge.net/apps/mediawiki/cppcheck/index.php?title=Main_Page'
-  md5 '18e8df419ba4c577bfb1d099653f8b2a'
+  url 'https://github.com/danmar/cppcheck/tarball/1.55'
+  sha1 '5a888427b9303420a1a583a2cb3919fb5ba3c5ce'
+  head 'https://github.com/danmar/cppcheck.git'
 
   depends_on 'pcre' unless ARGV.include? '--no-rules'
   depends_on 'qt' if ARGV.include? '--with-gui'
