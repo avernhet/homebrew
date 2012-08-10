@@ -71,8 +71,7 @@ class GccArmEabi <Formula
                   "--with-pkgversion=Neotion-SDK2-Celeborn",
                   "--with-bugurl=http://www.neotion.com"
       # Temp. workaround until GCC installation script is fixed
-      mkdir "#{prefix}/arm-eabi/lib/fpu"
-      mkdir "#{prefix}/arm-eabi/lib/fpu/interwork"
+      system "mkdir -p #{prefix}/arm-eabi/lib/fpu/interwork"
       system "make"
       system "make -k install"
     end
