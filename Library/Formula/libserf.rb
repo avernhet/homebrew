@@ -10,7 +10,7 @@ class Libserf < Formula
 
   def install
     # Mac OS X APR is built with non-existing tools
-    ENV['CPP'] = "/usr/bin/cc"
+    ENV['CPP'] = "llvm-cpp-4.2"
     ENV['APR_LIBTOOL'] = "#{Formula.factory('gnu-libtool').prefix}/bin/libtool"
 
     system "./configure", "--disable-debug",
