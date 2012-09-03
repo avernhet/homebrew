@@ -65,4 +65,16 @@ diff -rupN ldapvi-1.7-orig/misc.c ldapvi-1.7-new/misc.c
  {
  	tdialog d;
  	init_dialog(&d, DIALOG_DEFAULT, prompt, value);
+diff -rupN ldapvi-1.7-orig/ldapvi.c ldapvi-1.7-new/ldapvi.c
+--- ldapvi-1.7-orig/ldapvi.c	2012-09-03 12:57:08.000000000 +0200
++++ ldapvi-1.7/ldapvi.c	2012-09-03 12:57:57.000000000 +0200
+@@ -1465,7 +1465,7 @@
+ 	int line = 0;
+ 	int c;
+ 
+-	if (lstat(sasl, &st) == -1) return;
++	if (lstat(sasl, &st) == -1) return -1;
+ 	if ( !(in = fopen(sasl, "r"))) syserr();
+ 
+ 	if (st.st_size > 0) {
 
