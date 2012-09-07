@@ -14,10 +14,9 @@ class ArmEabiGcc <Formula
   depends_on 'gmp'
   depends_on 'mpfr'
   depends_on 'libmpc'
-  depends_on 'ppl'
   depends_on 'cloog'
   depends_on 'libelf'
-  depends_on 'binutils-arm-eabi'
+  depends_on 'arm-eabi-binutils'
 
   def patches
     DATA

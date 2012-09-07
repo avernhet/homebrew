@@ -8,8 +8,6 @@ class ArmEabiGdb <Formula
   depends_on 'gmp'
   depends_on 'mpfr'
   depends_on 'libmpc'
-  #depends_on 'ppl'
-  #depends_on 'cloog'
 
   def patches
     DATA
@@ -20,9 +18,6 @@ class ArmEabiGdb <Formula
                 "--with-gmp=#{Formula.factory('gmp').prefix}",
                 "--with-mpfr=#{Formula.factory('mpfr').prefix}",
                 "--with-mpc=#{Formula.factory('libmpc').prefix}",
-                #"--with-ppl=#{Formula.factory('ppl').prefix}",
-                #"--with-cloog=#{Formula.factory('cloog').prefix}",
-                #"--enable-cloog-backend=isl",
                 "--without-cloog",
                 "--enable-lto","--disable-werror"
     system "make"

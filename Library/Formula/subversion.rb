@@ -54,20 +54,20 @@ class UniversalSerf < Requirement
 
   def satisfied?
     f = Formula.factory('serf')
-    !f.installed? || archs_for_command(f.lib+'libserf-1.0.0.0.dylib').universal?
+    !f.installed? || archs_for_command(f.lib+'serf-1.0.0.0.dylib').universal?
   end
 end
 
 class Subversion < Formula
   homepage 'http://subversion.apache.org/'
-  url 'http://www.apache.org/dyn/closer.cgi?path=subversion/subversion-1.7.5.tar.bz2'
-  sha1 '05c079762690d5ac1ccd2549742e7ef70fa45cf1'
+  url 'http://www.apache.org/dyn/closer.cgi?path=subversion/subversion-1.7.6.tar.bz2'
+  sha1 '5b76a9f49e2c4bf064041a7d6b1bfcc3aa4ed068'
 
   depends_on 'pkg-config' => :build
   depends_on 'sqlite'  # could be optional, but many issues with dynamic
                        # linking arised with the system's SQLite package
-  depends_on 'libserf' # could be optional, but this package has already far
-                       # too many options. libserf is the recommended library
+  depends_on 'serf' # could be optional, but this package has already far
+                       # too many options. serf is the recommended library
                        # with SVN 1.7+ (vs. libneon)
 
   if ARGV.build_universal?
@@ -136,7 +136,7 @@ class Subversion < Formula
             "--prefix=#{prefix}",
             "--with-ssl",
             "--without-neon",
-            "--with-serf=#{Formula.factory('libserf').prefix}",
+            "--with-serf=#{Formula.factory('serf').prefix}",
             "--with-sqlite=#{Formula.factory('sqlite').prefix}",
             "--with-zlib=/usr",
             "--with-sqlite=#{HOMEBREW_PREFIX}",
