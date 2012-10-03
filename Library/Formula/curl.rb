@@ -8,20 +8,22 @@ class Curl < Formula
   keg_only :provided_by_osx,
             "The libcurl provided by Leopard is too old for CouchDB to use."
 
-  depends_on 'pkg-config' => :build
-  depends_on 'libssh2' if ARGV.include? "--with-ssh"
+  option 'with-ssh', 'Build with scp and sftp support'
+  option 'with-libmetalink', 'Build with Metalink support'
 
-  def options
-    [["--with-ssh", "Build with scp and sftp support."]]
-  end
+  depends_on 'pkg-config' => :build
+  depends_on 'libssh2' if build.include? 'with-ssh'
+  depends_on 'libmetalink' if build.include? 'with-libmetalink'
 
   def install
     args = %W[
-        --disable-debug
-        --disable-dependency-tracking
-        --prefix=#{prefix}]
+      --disable-debug
+      --disable-dependency-tracking
+      --prefix=#{prefix}
+    ]
 
-    args << "--with-libssh2" if ARGV.include? "--with-ssh"
+    args << "--with-libssh2" if build.include? 'with-ssh'
+    args << "--with-libmetalink" if build.include? 'with-libmetalink'
 
     system "./configure", *args
     system "make install"

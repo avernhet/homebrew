@@ -1,11 +1,10 @@
 require 'formula'
 
-def build_java?;   ARGV.include? "--java";   end
-def build_perl?;   ARGV.include? "--perl";   end
-def build_python?; ARGV.include? "--python"; end
-def build_ruby?;   ARGV.include? "--ruby";   end
-def with_unicode_path?; ARGV.include? "--unicode-path"; end
-def build_universal?; ARGV.build_universal?; end
+def build_java?;   build.include? "java";   end
+def build_perl?;   build.include? "perl";   end
+def build_python?; build.include? "python"; end
+def build_ruby?;   build.include? "ruby";   end
+def with_unicode_path?; build.include? "unicode-path"; end
 
 class UniversalNeon < Requirement
   def message; <<-EOS.undent
@@ -63,6 +62,13 @@ class Subversion < Formula
   url 'http://www.apache.org/dyn/closer.cgi?path=subversion/subversion-1.7.6.tar.bz2'
   sha1 '5b76a9f49e2c4bf064041a7d6b1bfcc3aa4ed068'
 
+  option :universal
+  option 'java', 'Build Java bindings'
+  option 'perl', 'Build Perl bindings'
+  option 'python', 'Build Python bindings'
+  option 'ruby', 'Build Ruby bindings'
+  option 'unicode-path', 'Include support for OS X UTF-8-MAC filename'
+
   depends_on 'pkg-config' => :build
   depends_on 'sqlite'  # could be optional, but many issues with dynamic
                        # linking arised with the system's SQLite package
@@ -70,7 +76,7 @@ class Subversion < Formula
                        # too many options. libserf is the recommended library
                        # with SVN 1.7+ (vs. libneon)
 
-  if ARGV.build_universal?
+  if build.universal?
     depends_on UniversalNeon.new
     depends_on UniversalSqlite.new
     depends_on UniversalSerf.new
@@ -78,17 +84,6 @@ class Subversion < Formula
 
   # Building Ruby bindings requires libtool
   depends_on :libtool if build_ruby?
-
-  def options
-    [
-      ['--java', 'Build Java bindings.'],
-      ['--perl', 'Build Perl bindings.'],
-      ['--python', 'Build Python bindings.'],
-      ['--ruby', 'Build Ruby bindings.'],
-      ['--universal', 'Build as a Universal Intel binary.'],
-      ['--unicode-path', 'Include support for OS X UTF-8-MAC filename'],
-    ]
-  end
 
   def patches
     ps = []
@@ -118,7 +113,7 @@ class Subversion < Formula
 
   def install
     if build_java?
-      unless ARGV.build_universal?
+      unless build.universal?
         opoo "A non-Universal Java build was requested."
         puts "To use Java bindings with various Java IDEs, you might need a universal build:"
         puts "  brew install subversion --universal --java"
@@ -128,6 +123,8 @@ class Subversion < Formula
         opoo "JAVA_HOME is set. Try unsetting it if JNI headers cannot be found."
       end
     end
+
+    ENV.universal_binary if build.universal?
 
     # Use existing system zlib
     # Use dep-provided other libraries
@@ -170,9 +167,9 @@ class Subversion < Formula
     if build_perl?
       ENV.j1 # This build isn't parallel safe
       # Remove hard-coded ppc target, add appropriate ones
-      if ARGV.build_universal?
+      if build.universal?
         arches = "-arch x86_64 -arch i386"
-      elsif MacOS.leopard?
+      elsif MacOS.version == :leopard
         arches = "-arch i386"
       else
         arches = "-arch x86_64"

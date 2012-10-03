@@ -22,10 +22,9 @@ class Cmake < Formula
   sha1 'b96663c0757a5edfbddc410aabf7126a92131e2b'
 
   bottle do
-    version 3
-    sha1 '64e1a488bc669f7676c99874b8496ac147d1bc70' => :mountainlion
-    sha1 'bdfb5fcd6743d65f6cfe00b314f9d3f1049e902b' => :lion
-    sha1 '3a77fc17a7b1d3cceabddcca5c126c6b911c2f90' => :snowleopard
+    sha1 'ae7e0cf39556ea0a32e7bb7716ac820734ca7918' => :mountainlion
+    sha1 '6631aaeeafb9209e711508ad72727fbb4b5ab295' => :lion
+    sha1 'ea52f2a18b00f3404e8bf73c12c3da1d9a39f128' => :snowleopard
   end
 
   depends_on NoExpatFramework.new
@@ -43,11 +42,6 @@ class Cmake < Formula
       --docdir=/share/doc/cmake
       --mandir=/share/man
     ]
-
-    if ARGV.include? "--enable-ninja"
-      args << "--"
-      args << "-DCMAKE_ENABLE_NINJA=1"
-    end
 
     system "./bootstrap", *args
     system "make"

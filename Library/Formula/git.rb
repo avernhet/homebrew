@@ -1,30 +1,26 @@
 require 'formula'
 
 class GitManuals < Formula
-  url 'http://git-core.googlecode.com/files/git-manpages-1.7.11.4.tar.gz'
-  sha1 '032301a87832d738149925ad2912baa554ae2270'
+  url 'http://git-core.googlecode.com/files/git-manpages-1.7.12.2.tar.gz'
+  sha1 '8cf6fd255e83226b4abcdcd68dcf315c1995fd92'
 end
 
 class GitHtmldocs < Formula
-  url 'http://git-core.googlecode.com/files/git-htmldocs-1.7.11.4.tar.gz'
-  sha1 'ceb4b4699a6561719aa07e01601ed5491206c075'
+  url 'http://git-core.googlecode.com/files/git-htmldocs-1.7.12.2.tar.gz'
+  sha1 '5722156394c7478b2339a1d87aa894bc4d2f5d6b'
 end
 
 class Git < Formula
   homepage 'http://git-scm.com'
-  url 'http://git-core.googlecode.com/files/git-1.7.11.4.tar.gz'
-  sha1 '36180126eb2048d49b00f6092d83568df4e61c4c'
+  url 'http://git-core.googlecode.com/files/git-1.7.12.2.tar.gz'
+  sha1 '277b759139ddb62c6935da37de8a483e2c234a97'
 
   head 'https://github.com/git/git.git'
 
-  depends_on 'pcre' if ARGV.include? '--with-pcre'
+  depends_on 'pcre' if build.include? 'with-pcre'
 
-  def options
-    [
-      ['--with-blk-sha1', 'compile with the optimized SHA1 implementation'],
-      ['--with-pcre', 'compile with the PCRE library'],
-    ]
-  end
+  option 'with-blk-sha1', 'Compile with the block-optimized SHA1 implementation'
+  option 'with-pcre', 'Compile with the PCRE library'
 
   def install
     # If these things are installed, tell Git build system to not use them
@@ -37,11 +33,11 @@ class Git < Formula
     ENV['PYTHON_PATH'] = which 'python' # python can be brewed or unbrewed
 
     # Clean XCode 4.x installs don't include Perl MakeMaker
-    ENV['NO_PERL_MAKEMAKER'] = '1' if MacOS.lion?
+    ENV['NO_PERL_MAKEMAKER'] = '1' if MacOS.version >= :lion
 
-    ENV['BLK_SHA1'] = '1' if ARGV.include? '--with-blk-sha1'
+    ENV['BLK_SHA1'] = '1' if build.include? 'with-blk-sha1'
 
-    if ARGV.include? '--with-pcre'
+    if build.include? 'with-pcre'
       ENV['USE_LIBPCRE'] = '1'
       ENV['LIBPCREDIR'] = HOMEBREW_PREFIX
     end
@@ -61,8 +57,17 @@ class Git < Formula
       system "make", "clean"
     end
 
+    # Install git-subtree
+    cd 'contrib/subtree' do
+      system "make", "CC=#{ENV.cc}",
+                     "CFLAGS=#{ENV.cflags}",
+                     "LDFLAGS=#{ENV.ldflags}"
+      bin.install 'git-subtree'
+    end
+
     # install the completion script first because it is inside 'contrib'
     (prefix+'etc/bash_completion.d').install 'contrib/completion/git-completion.bash'
+    (prefix+'etc/bash_completion.d').install 'contrib/completion/git-prompt.sh'
     (share+'git-core').install 'contrib'
 
     # We could build the manpages ourselves, but the build process depends
