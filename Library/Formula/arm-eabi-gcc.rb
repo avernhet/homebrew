@@ -7,9 +7,9 @@ class ArmEabiNewLib <Formula
 end
 
 class ArmEabiGcc <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.7.1/gcc-4.7.1.tar.bz2'
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.7.2/gcc-4.7.2.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      '3ab74e63a8f2120b4f2c5557f5ffec6907337137'
+  sha1      'a464ba0f26eef24c29bcd1e7489421117fb9ee35'
 
   depends_on 'gmp'
   depends_on 'mpfr'
@@ -17,7 +17,7 @@ class ArmEabiGcc <Formula
   depends_on 'ppl'
   depends_on 'cloog'
   depends_on 'libelf'
-  depends_on 'binutils-arm-eabi'
+  depends_on 'arm-eabi-binutils'
 
   def patches
     DATA
