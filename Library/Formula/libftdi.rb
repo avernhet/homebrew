@@ -6,7 +6,6 @@ class Libftdi < Formula
   sha1 '4bc6ce70c98a170ada303fbd00b8428d8a2c1aa2'
 
   depends_on 'pkg-config' => :build
-  depends_on 'boost'
   depends_on 'libusb-compat'
 
   def patches
