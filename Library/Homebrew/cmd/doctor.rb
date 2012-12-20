@@ -118,7 +118,16 @@ end
 
 def check_for_stray_static_libs
   unbrewed_alibs = Dir['/usr/local/lib/*.a'].select { |f| File.file? f and not File.symlink? f }
-  return if unbrewed_alibs.empty?
+
+  # Static libs which are generally OK should be added to this list,
+  # with a short description of the software they come with.
+  white_list = {
+    "libsecurity_agent_client.a" => "OS X 10.8.2 Supplemental Update",
+    "libsecurity_agent_server.a" => "OS X 10.8.2 Supplemental Update"
+  }
+
+  bad_alibs = unbrewed_alibs.reject {|d| white_list.key? File.basename(d) }
+  return if bad_alibs.empty?
 
   s = <<-EOS.undent
     Unbrewed static libraries were found in /usr/local/lib.
@@ -127,7 +136,7 @@ def check_for_stray_static_libs
 
     Unexpected static libraries:
   EOS
-  unbrewed_alibs.each{ |f| s << "    #{f}" }
+  bad_alibs.each{ |f| s << "    #{f}" }
   s
 end
 
@@ -175,11 +184,14 @@ def check_for_stray_las
 end
 
 def check_for_other_package_managers
-  if macports_or_fink_installed?
+  ponk = MacOS.macports_or_fink
+  unless ponk.empty?
     <<-EOS.undent
-      You have Macports or Fink installed.
-      This can cause trouble. You don't have to uninstall them, but you may like to
-      try temporarily moving them away, eg.
+      You have MacPorts or Fink installed:
+        #{ponk.join(", ")}
+
+      This can cause trouble. You don't have to uninstall them, but you may want to
+      temporarily move them out of the way, e.g.
 
         sudo mv /opt/local ~/macports
     EOS
@@ -741,6 +753,8 @@ end
 
 def check_for_linked_keg_only_brews
   require 'formula'
+
+  return unless HOMEBREW_CELLAR.exist?
 
   warnings = Hash.new
 
