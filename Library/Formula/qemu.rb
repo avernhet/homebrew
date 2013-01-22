@@ -12,7 +12,15 @@ class Qemu < Formula
   depends_on 'pixman'
 
   def patches
-    DATA
+    # This patch fixes the semaphore fallback code for block devices,
+    # as OS X does not implement sem_timedwait() & Co.
+    #
+    # It has not been merged to the 1.3.x stable branch yet.
+    #
+    # See https://bugs.launchpad.net/qemu/+bug/1087114
+    if not build.head? then
+      { :p1 => "https://github.com/qemu/qemu/commit/a795ef8dcb8cbadffc996c41ff38927a97645234.diff"}
+    end
   end
 
   def install
@@ -30,24 +38,3 @@ class Qemu < Formula
     system "make install"
   end
 end
-
-__END__
-diff -u a/fpu/softfloat.h b/fpu/softfloat.h
---- a/fpu/softfloat.h	2011-12-01 21:07:34.000000000 +0100
-+++ b/fpu/softfloat.h	2012-02-15 00:33:28.000000000 +0100
-@@ -56,10 +56,14 @@
- typedef uint8_t flag;
- typedef uint8_t uint8;
- typedef int8_t int8;
--#ifndef _AIX
-+#if ! defined (_AIX) && ! defined (__APPLE__)
- typedef int uint16;
- typedef int int16;
- #endif
-+#if defined (__APPLE__)
-+typedef uint16_t uint16;
-+typedef int16_t int16;
-+#endif
- typedef unsigned int uint32;
- typedef signed int int32;
- typedef uint64_t uint64;

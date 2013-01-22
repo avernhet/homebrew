@@ -7,14 +7,12 @@ def build_ruby?;   build.include? "ruby";   end
 def with_unicode_path?; build.include? "unicode-path"; end
 
 class UniversalNeon < Requirement
+  fatal true
+
   def message; <<-EOS.undent
       A universal build was requested, but neon was already built for a single arch.
       You will need to `brew rm neon` first.
     EOS
-  end
-
-  def fatal?
-    true
   end
 
   def satisfied?
@@ -24,14 +22,12 @@ class UniversalNeon < Requirement
 end
 
 class UniversalSqlite < Requirement
+  fatal true
+
   def message; <<-EOS.undent
       A universal build was requested, but sqlite was already built for a single arch.
       You will need to `brew rm sqlite` first.
     EOS
-  end
-
-  def fatal?
-    true
   end
 
   def satisfied?
@@ -41,14 +37,12 @@ class UniversalSqlite < Requirement
 end
 
 class UniversalSerf < Requirement
+  fatal true
+
   def message; <<-EOS.undent
       A universal build was requested, but serf was already built for a single arch.
       You will need to `brew rm serf` first.
     EOS
-  end
-
-  def fatal?
-    true
   end
 
   def satisfied?
@@ -112,6 +106,9 @@ class Subversion < Formula
   end if build_perl? or build_python? or build_ruby?
 
   def install
+    # We had weird issues with "make" apparently hanging on first run: https://github.com/mxcl/homebrew/issues/13226
+    ENV.deparallelize
+
     if build_java?
       unless build.universal?
         opoo "A non-Universal Java build was requested."
@@ -136,7 +133,7 @@ class Subversion < Formula
             "--with-serf=#{Formula.factory('libserf').prefix}",
             "--with-sqlite=#{Formula.factory('sqlite').prefix}",
             "--with-zlib=/usr",
-            "--with-sqlite=#{HOMEBREW_PREFIX}",
+            "--with-sqlite=#{Formula.factory('sqlite').opt_prefix}",
             "--with-serf=#{HOMEBREW_PREFIX}",
             "--disable-mod-activation",
             "--without-apache-libexecdir",
@@ -165,7 +162,6 @@ class Subversion < Formula
     end
 
     if build_perl?
-      ENV.j1 # This build isn't parallel safe
       # Remove hard-coded ppc target, add appropriate ones
       if build.universal?
         arches = "-arch x86_64 -arch i386"
@@ -189,13 +185,11 @@ class Subversion < Formula
     end
 
     if build_java?
-      ENV.j1 # This build isn't parallel safe
       system "make javahl"
       system "make install-javahl"
     end
 
     if build_ruby?
-      ENV.j1 # This build isn't parallel safe
       system "make swig-rb"
       system "make install-swig-rb"
     end

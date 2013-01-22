@@ -9,6 +9,11 @@ class Pygments < Formula
 end
 
 class MarkdownProvider < Requirement
+  fatal true
+  env :userpaths
+
+  satisfy { which 'markdown' }
+
   def message; <<-EOS.undent
     shocco requires a `markdown` command.
 
@@ -18,14 +23,6 @@ class MarkdownProvider < Requirement
 
     Please install one and try again.
     EOS
-  end
-
-  def satisfied?
-    which 'markdown'
-  end
-
-  def fatal?
-    true
   end
 end
 

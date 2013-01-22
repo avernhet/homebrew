@@ -8,9 +8,7 @@ class LanguageModuleDependency < Requirement
     @import_name = import_name || module_name
   end
 
-  def satisfied?
-    quiet_system(*the_test)
-  end
+  satisfy { quiet_system(*the_test) }
 
   def message; <<-EOS.undent
     Unsatisfied dependency: #{@module_name}
@@ -57,14 +55,16 @@ class X11Dependency < Requirement
 
   fatal true
 
+  env { x11 }
+
   def initialize(*tags)
     tags.flatten!
     @min_version = tags.shift if /(\d\.)+\d/ === tags.first
     super
   end
 
-  def satisfied?
-    MacOS::XQuartz.installed? and (@min_version.nil? or @min_version <= MacOS::XQuartz.version)
+  satisfy :build_env => false do
+    MacOS::XQuartz.installed? && (@min_version.nil? || @min_version <= MacOS::XQuartz.version)
   end
 
   def message; <<-EOS.undent
@@ -72,10 +72,6 @@ class X11Dependency < Requirement
     Homebrew does not package XQuartz. Installers may be found at:
       https://xquartz.macosforge.org
     EOS
-  end
-
-  def modify_build_environment
-    ENV.x11
   end
 
   def <=> other
@@ -123,7 +119,7 @@ class MPIDependency < Requirement
     quiet_system compiler, '--version'
   end
 
-  def satisfied?
+  satisfy do
     @lang_list.each do |lang|
       case lang
       when :cc, :cxx, :f90, :f77
@@ -133,15 +129,14 @@ class MPIDependency < Requirement
         @unknown_langs << lang.to_s
       end
     end
-
     @unknown_langs.empty? and @non_functional.empty?
   end
 
-  def modify_build_environment
+  env do |req|
     # Set environment variables to help configure scripts find MPI compilers.
     # Variable names taken from:
     # http://www.gnu.org/software/autoconf-archive/ax_mpi.html
-    lang_list.each do |lang|
+    req.lang_list.each do |lang|
       compiler = 'mpi' + lang.to_s
       mpi_path = which compiler
 
@@ -201,7 +196,7 @@ class ConflictRequirement < Requirement
     message
   end
 
-  def satisfied?
+  satisfy :build_env => false do
     keg = Formula.factory(@formula).prefix
     not keg.exist? && Keg.new(keg).linked?
   end
@@ -210,9 +205,7 @@ end
 class XcodeDependency < Requirement
   fatal true
 
-  def satisfied?
-    MacOS::Xcode.installed?
-  end
+  satisfy(:build_env => false) { MacOS::Xcode.installed? }
 
   def message; <<-EOS.undent
     A full installation of Xcode.app is required to compile this software.
@@ -223,10 +216,9 @@ end
 
 class MysqlInstalled < Requirement
   fatal true
+  env :userpaths
 
-  def satisfied?
-    which 'mysql_config'
-  end
+  satisfy { which 'mysql_config' }
 
   def message; <<-EOS.undent
     MySQL is required to install.
@@ -246,10 +238,9 @@ end
 
 class PostgresqlInstalled < Requirement
   fatal true
+  env :userpaths
 
-  def satisfied?
-    which 'pg_config'
-  end
+  satisfy { which 'pg_config' }
 
   def message
     <<-EOS.undent
@@ -260,6 +251,26 @@ class PostgresqlInstalled < Requirement
 
       Or you can use an official installer from:
         http://www.postgresql.org/download/macosx/
+    EOS
+  end
+end
+
+class TeXInstalled < Requirement
+  fatal true
+  env :userpaths
+
+  satisfy { which('tex') || which('latex') }
+
+  def message; <<-EOS.undent
+    A LaTeX distribution is required to install.
+
+    You can install MacTeX distribution from:
+      http://www.tug.org/mactex/
+
+    Make sure that its bin directory is in your PATH before proceeding.
+
+    You may also need to restore the ownership of Homebrew install:
+      sudo chown -R $USER `brew --prefix`
     EOS
   end
 end
