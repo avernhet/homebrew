@@ -8,7 +8,7 @@ class BinutilsArmEabi <Formula
   depends_on 'gmp'
   depends_on 'mpfr'
   depends_on 'ppl'
-  depends_on 'cloog-ppl'
+  depends_on 'cloog'
 
   def install
     system "./configure", "--prefix=#{prefix}", "--target=arm-eabi",
@@ -17,7 +17,9 @@ class BinutilsArmEabi <Formula
                 "--with-mpfr=#{Formula.factory('mpfr').prefix}",
                 "--with-ppl=#{Formula.factory('ppl').prefix}",
                 "--with-cloog=#{Formula.factory('cloog').prefix}",
-                "--enable-cloog-backend=isl", "--disable-cloog-version-check",
+                "--enable-cloog-backend=isl",
+                "--disable-ppl-version-check",
+                "--disable-cloog-version-check",
                 "--enable-multilibs", "--enable-interwork", "--enable-lto",
                 "--disable-werror", "--disable-debug"
     system "make"

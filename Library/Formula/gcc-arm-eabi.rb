@@ -43,7 +43,7 @@ class GccArmEabi <Formula
     }
 
     # Cannot build with LLVM (cross compiler crashes)
-    ENV.gcc_4_2
+    # ENV.gcc_4_2
     # Fix up CFLAGS for cross compilation (default switches cause build issues)
     ENV['CFLAGS_FOR_BUILD'] = "-O2"
     ENV['CFLAGS'] = "-O2"
@@ -73,13 +73,14 @@ class GccArmEabi <Formula
                   "--with-cloog=#{Formula.factory('cloog').prefix}",
                   "--enable-cloog-backend=isl",
                   "--disable-cloog-version-check",
+                  "--disable-ppl-version-check",
                   "--with-libelf=#{Formula.factory('libelf').prefix}",
                   "--with-gxx-include-dir=#{prefix}/arm-eabi/include",
                   "--disable-debug", "--disable-__cxa_atexit",
                   "--with-pkgversion=Neotion-SDK-Yvette",
                   "--with-bugurl=http://www.neotion.com"
       system "make"
-      system "make install"
+      system "make -k install; true"
     end
 
     ln_s "#{Formula.factory('binutils-arm-eabi').prefix}/arm-eabi/bin",
