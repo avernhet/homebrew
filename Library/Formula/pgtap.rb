@@ -1,26 +1,16 @@
 require 'formula'
 
 class Pgtap < Formula
-  url 'http://pgfoundry.org/frs/download.php/2701/pgtap-0.24.tar.bz2'
   homepage 'http://pgtap.org'
-  md5 '9d0360c87fca0ddf3ca9da49b9b71947'
+  url 'http://api.pgxn.org/dist/pgtap/0.91.0/pgtap-0.91.0.zip'
+  sha1 '1f10b78eb42361659603228c754a55755fcff4fa'
 
-  skip_clean :all
+  depends_on :postgresql
+
+  skip_clean 'share'
 
   def install
-    unless which 'pg_config'
-      opoo "No pg_config was detected."
-      puts <<-EOS.undent
-        pg_top requires postgresql in order to compile, but pg_config was not
-        found. This install will likely fail.
-
-        You can install this with:
-          brew install postgresql
-        or by using a package installer from the PostgreSQL project itself.
-      EOS
-    end
-
+    ENV.prepend 'PATH', Formula.factory('postgresql').bin, ':'
     system "make install"
-    bin.install %w(bbin/pg_prove bbin/pg_tapgen)
   end
 end

@@ -1,28 +1,17 @@
 require 'formula'
 
 class Hbase < Formula
-  url 'http://www.apache.org/dyn/closer.cgi?path=hbase/hbase-0.90.5/hbase-0.90.5.tar.gz'
   homepage 'http://hbase.apache.org'
-  md5 'd720e7d5a355cb55145809cf0cfef595'
+  url 'http://www.apache.org/dyn/closer.cgi?path=hbase/hbase-0.94.2/hbase-0.94.2.tar.gz'
+  sha1 'c6731729e1bc47cbdfc0e95ebce8c039bfebfa8e'
 
   depends_on 'hadoop'
-
-  def shim_script target
-    <<-EOS.undent
-      #!/bin/bash
-      exec "#{libexec}/bin/#{target}" "$@"
-    EOS
-  end
 
   def install
     rm_f Dir["bin/*.bat"]
     libexec.install %w[bin conf docs lib hbase-webapps]
     libexec.install Dir['*.jar']
-    bin.mkpath
-    Dir["#{libexec}/bin/*"].each do |b|
-      n = Pathname.new(b).basename
-      (bin+n).write shim_script(n)
-    end
+    bin.write_exec_script Dir["#{libexec}/bin/*"]
 
     inreplace "#{libexec}/conf/hbase-env.sh",
       "# export JAVA_HOME=/usr/java/jdk1.6.0/",

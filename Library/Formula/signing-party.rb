@@ -1,11 +1,30 @@
 require 'formula'
 
+class GnupgInstalled < Requirement
+  fatal true
+  env :userpaths
+
+  satisfy { which('gpg') || which('gpg2') }
+
+  def message; <<-EOS.undent
+    Gnupg is required to use these tools.
+
+    You can install Gnupg or Gnupg2 with Homebrew:
+      brew install gnupg
+      brew install gnupg2
+
+    Or you can use one of several different
+    prepackaged installers that are available.
+    EOS
+  end
+end
+
 class SigningParty < Formula
   homepage 'http://pgp-tools.alioth.debian.org/'
   url 'http://ftp.debian.org/debian/pool/main/s/signing-party/signing-party_1.1.4.orig.tar.gz'
-  md5 '675f8f1edd01baa8b58a743927d13750'
+  sha1 '092b7d644b7a8a8d2e82fd6ddb453ca58020ed31'
 
-  depends_on 'gnupg' unless which 'gpg'
+  depends_on GnupgInstalled.new
   depends_on 'dialog'
   depends_on 'qprint'
   depends_on 'MIME::Tools' => :perl
@@ -21,10 +40,12 @@ class SigningParty < Formula
     doc.install 'README'
 
     cd 'caff' do
-      inreplace 'caffrc.sample', '/usr/share/doc/signing-party', doc
+      inreplace 'caff', '/usr/share/doc/signing-party', HOMEBREW_PREFIX/'share/doc/signing-party'
       system "make"
       man1.install Dir['*.1']
       bin.install 'caff'
+      bin.install 'pgp-clean'
+      bin.install 'pgp-fixkey'
       (doc+'caff').install Dir['README*', 'caffrc.sample']
     end
 

@@ -2,17 +2,43 @@ require 'formula'
 
 class Beanstalk < Formula
   homepage 'http://kr.github.com/beanstalkd/'
-  url 'https://github.com/downloads/kr/beanstalkd/beanstalkd-1.5.tar.gz'
-  md5 'd75a0a93e6b80b57fea61136f6da57eb'
-
-  # fix cpu use on freebsd and darwin
-  # bug report: https://github.com/kr/beanstalkd/issues/96
-  # Will be in next release
-  def patches
-    {:p1 => "http://github.com/kr/beanstalkd/commit/80da772efeeaabb12893f52a93da74ca9e69206d.patch"}
-  end
+  url 'https://github.com/downloads/kr/beanstalkd/beanstalkd-1.8.tar.gz'
+  sha1 'b8c274d7233e02c6793d8d119608ad7c878b0954'
 
   def install
-    system "make install PREFIX=#{prefix}"
+    system "make", "install", "PREFIX=#{prefix}"
+  end
+
+
+  plist_options :manual => "beanstalkd"
+
+  def plist; <<-EOS.undent
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+      <dict>
+        <key>KeepAlive</key>
+        <true/>
+        <key>Label</key>
+        <string>#{plist_name}</string>
+        <key>ProgramArguments</key>
+        <array>
+          <string>#{opt_prefix}/bin/beanstalkd</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>KeepAlive</key>
+        <true/>
+        <key>UserName</key>
+        <string>#{`whoami`.chomp}</string>
+        <key>WorkingDirectory</key>
+        <string>#{var}</string>
+        <key>StandardErrorPath</key>
+        <string>#{var}/log/beanstalkd.log</string>
+        <key>StandardOutPath</key>
+        <string>#{var}/log/beanstalkd.log</string>
+      </dict>
+    </plist>
+    EOS
   end
 end

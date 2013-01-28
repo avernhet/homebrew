@@ -1,9 +1,9 @@
 require 'formula'
 
 class Cramfs <Formula
-  @url='http://downloads.sourceforge.net/project/cramfs/cramfs/1.1/cramfs-1.1.tar.gz'
-  @homepage='http://cramfs.sourceforge.net'
-  @sha1='08133f2a2a0f02c6dd07c8dc565a4eac6bc967cd'
+  url 'http://downloads.sourceforge.net/project/cramfs/cramfs/1.1/cramfs-1.1.tar.gz'
+  homepage 'http://cramfs.sourceforge.net'
+  sha1 '08133f2a2a0f02c6dd07c8dc565a4eac6bc967cd'
 
   depends_on 'cmake'
 

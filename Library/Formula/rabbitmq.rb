@@ -2,113 +2,88 @@ require 'formula'
 
 class Rabbitmq < Formula
   homepage 'http://www.rabbitmq.com'
-  url 'http://www.rabbitmq.com/releases/rabbitmq-server/v2.7.1/rabbitmq-server-2.7.1.tar.gz'
-  md5 '44eb09d2dff8ce641a1fe7f255a4c546'
+  url 'http://www.rabbitmq.com/releases/rabbitmq-server/v3.0.1/rabbitmq-server-generic-unix-3.0.1.tar.gz'
+  sha1 '6256a589eea964adc7e051945818cb1b63ededc7'
 
   depends_on 'erlang'
-  depends_on 'simplejson' => :python if MacOS.leopard?
-
-  def patches
-      # Fixes build on 10.5, already fixed upstream but was not in 2.7.1 release
-      # https://github.com/rabbitmq/rabbitmq-public-umbrella/commit/b46edc7433
-      DATA
-  end
+  depends_on 'simplejson' => :python if MacOS.version == :leopard
 
   def install
-    # Building the manual requires additional software, so skip it.
-    inreplace "Makefile", "install: install_bin install_docs", "install: install_bin"
+    # Install the base files
+    prefix.install Dir['*']
 
-    target_dir = "#{lib}/rabbitmq/erlang/lib/rabbitmq-#{version}"
-    system "make"
-    ENV['TARGET_DIR'] = target_dir
-    ENV['MAN_DIR'] = man
-    ENV['SBIN_DIR'] = sbin
-    system "make install"
-
-    (etc+'rabbitmq').mkpath
+    # Setup the lib files
     (var+'lib/rabbitmq').mkpath
     (var+'log/rabbitmq').mkpath
 
-    %w{rabbitmq-server rabbitmqctl rabbitmq-env rabbitmq-plugins}.each do |script|
-      inreplace sbin+script do |s|
-        s.gsub! '/etc/rabbitmq', "#{etc}/rabbitmq"
-        s.gsub! '/var/lib/rabbitmq', "#{var}/lib/rabbitmq"
-        s.gsub! '/var/log/rabbitmq', "#{var}/log/rabbitmq"
-      end
-    end
+    # Replace the SYS_PREFIX for things like rabbitmq-plugins
+    inreplace (sbin + 'rabbitmq-defaults'), 'SYS_PREFIX=${RABBITMQ_HOME}', "SYS_PREFIX=#{HOMEBREW_PREFIX}"
 
-    # RabbitMQ Erlang binaries are installed in lib/rabbitmq/erlang/lib/rabbitmq-x.y.z/ebin
-    # therefore need to add this path for erl -pa
-    inreplace sbin+'rabbitmq-env', '${SCRIPT_DIR}/..', target_dir
+    # Set the RABBITMQ_HOME in rabbitmq-env
+    inreplace (sbin + 'rabbitmq-env'), 'RABBITMQ_HOME="${SCRIPT_DIR}/.."', "RABBITMQ_HOME=#{prefix}"
 
-    plist_path.write startup_plist
-    plist_path.chmod 0644
+    # Create the rabbitmq-env.conf file
+    rabbitmq_env_conf = etc+'rabbitmq/rabbitmq-env.conf'
+    rabbitmq_env_conf.write rabbitmq_env unless rabbitmq_env_conf.exist?
+
+    # Enable the management web UI and visualiser
+    enabled_plugins_path = etc+'rabbitmq/enabled_plugins'
+    enabled_plugins_path.write enabled_plugins unless enabled_plugins_path.exist?
+
+    # Extract rabbitmqadmin and install to sbin
+    # use it to generate, then install the bash completion file
+    system ("/usr/bin/unzip", "-qq", "-j", "#{prefix}/plugins/rabbitmq_management-#{version}.ez", "rabbitmq_management-#{version}/priv/www/cli/rabbitmqadmin")
+    sbin.install 'rabbitmqadmin'
+
+    system ("#{sbin}/rabbitmqadmin --bash-completion > rabbitmqadmin.bash")
+    (prefix+'etc/bash_completion.d').install 'rabbitmqadmin.bash'
+
   end
 
-  def caveats
-    <<-EOS.undent
-    If this is your first install, automatically load on login with:
-        mkdir -p ~/Library/LaunchAgents
-        cp #{plist_path} ~/Library/LaunchAgents/
-        launchctl load -w ~/Library/LaunchAgents/#{plist_path.basename}
-
-    If this is an upgrade and you already have the #{plist_path.basename} loaded:
-        launchctl unload -w ~/Library/LaunchAgents/#{plist_path.basename}
-        cp #{plist_path} ~/Library/LaunchAgents/
-        launchctl load -w ~/Library/LaunchAgents/#{plist_path.basename}
-
-      To start rabbitmq-server manually:
-        rabbitmq-server
+  def caveats; <<-EOS.undent
+    Management Plugin enabled by default at http://localhost:15672
     EOS
   end
 
-  def startup_plist
-    return <<-EOPLIST
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
-"http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-    <key>Label</key>
-    <string>#{plist_name}</string>
-    <key>Program</key>
-    <string>#{HOMEBREW_PREFIX}/sbin/rabbitmq-server</string>
-    <key>RunAtLoad</key>
-    <true/>
-    <key>UserName</key>
-    <string>#{`whoami`.chomp}</string>
-    <!-- need erl in the path -->
-    <key>EnvironmentVariables</key>
-    <dict>
-      <key>PATH</key>
-      <string>/usr/local/sbin:/usr/bin:/bin:/usr/local/bin</string>
-    </dict>
-  </dict>
-</plist>
-    EOPLIST
+  def enabled_plugins; <<-EOS.undent
+      [rabbitmq_management,rabbitmq_management_visualiser].
+    EOS
+  end
+
+  def rabbitmq_env; <<-EOS.undent
+    CONFIG_FILE=#{etc}/rabbitmq/rabbitmq
+    NODE_IP_ADDRESS=127.0.0.1
+    NODENAME=rabbit@localhost
+    EOS
+  end
+
+  plist_options :manual => 'rabbitmq-server'
+
+  def plist; <<-EOS.undent
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+      <dict>
+        <key>Label</key>
+        <string>#{plist_name}</string>
+        <key>Program</key>
+        <string>#{opt_prefix}/sbin/rabbitmq-server</string>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>UserName</key>
+        <string>#{`whoami`.chomp}</string>
+        <key>EnvironmentVariables</key>
+        <dict>
+          <!-- need erl in the path -->
+          <key>PATH</key>
+          <string>/usr/local/sbin:/usr/bin:/bin:/usr/local/bin</string>
+          <!-- specify the path to the rabbitmq-env.conf file -->
+          <key>CONF_ENV_FILE</key>
+          <string>#{etc}/rabbitmq/rabbitmq-env.conf</string>
+        </dict>
+      </dict>
+    </plist>
+    EOS
   end
 end
-
-__END__
-diff --git a/plugins-src/do-package.mk b/plugins-src/do-package.mk
-index d7f8752..023042a 100644
---- a/plugins-src/do-package.mk
-+++ b/plugins-src/do-package.mk
-@@ -286,7 +286,7 @@ $(eval $(foreach D,$(TEST_SOURCE_DIRS),$(call package_source_dir_targets,$(D),$(
- define run_broker
- 	rm -rf $(TEST_TMPDIR)
- 	mkdir -p $(foreach D,log plugins $(NODENAME),$(TEST_TMPDIR)/$(D))
--	cp -a $(PACKAGE_DIR)/dist/*.ez $(TEST_TMPDIR)/plugins
-+	cp -p $(PACKAGE_DIR)/dist/*.ez $(TEST_TMPDIR)/plugins
- 	$(call copy,$(3),$(TEST_TMPDIR)/plugins)
- 	rm -f $(TEST_TMPDIR)/plugins/rabbit_common*.ez
- 	for plugin in \
-@@ -375,7 +375,7 @@ $(APP_DONE): $(EBIN_BEAMS) $(INCLUDE_HRLS) $(APP_FILE) $(CONSTRUCT_APP_PREREQS)
- 	mkdir -p $(APP_DIR)/ebin $(APP_DIR)/include
- 	@echo [elided] copy beams to ebin
- 	@$(call copy,$(EBIN_BEAMS),$(APP_DIR)/ebin)
--	cp -a $(APP_FILE) $(APP_DIR)/ebin/$(APP_NAME).app
-+	cp -p $(APP_FILE) $(APP_DIR)/ebin/$(APP_NAME).app
- 	$(call copy,$(INCLUDE_HRLS),$(APP_DIR)/include)
- 	$(construct_app_commands)
- 	touch $$@

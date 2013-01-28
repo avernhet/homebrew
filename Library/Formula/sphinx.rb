@@ -10,30 +10,46 @@ end
 
 class Sphinx < Formula
   homepage 'http://www.sphinxsearch.com'
-  url 'http://sphinxsearch.com/files/sphinx-2.0.3-release.tar.gz'
-  version '2.0.3'
-  md5 'a1293aecd5034aa797811610beb7ba89'
+  url 'http://sphinxsearch.com/files/sphinx-2.0.6-release.tar.gz'
+  sha1 'fe1b990052f961a100adba197abe806a3c1b70dc'
 
   head 'http://sphinxsearch.googlecode.com/svn/trunk/'
 
-  fails_with_llvm "ld: rel32 out of range in _GetPrivateProfileString from /usr/lib/libodbc.a(SQLGetPrivateProfileString.o)",
-    :build => 2334
+  fails_with :llvm do
+    build 2334
+    cause "ld: rel32 out of range in _GetPrivateProfileString from /usr/lib/libodbc.a(SQLGetPrivateProfileString.o)"
+  end
+
+  fails_with :clang do
+    build 421
+    cause <<-EOS.undent
+      sphinxexpr.cpp:1802:11: error: use of undeclared identifier 'ExprEval'
+    EOS
+  end
+
+  option 'mysql', 'Force compiling against MySQL'
+  option 'pgsql', 'Force compiling against PostgreSQL'
+  option 'id64',  'Force compiling with 64-bit ID support'
 
   def install
-    lstem = Pathname.pwd+'libstemmer_c'
-    Libstemmer.new.brew { lstem.install Dir['*'] }
+    Libstemmer.new.brew { (buildpath/'libstemmer_c').install Dir['*'] }
 
-    args = ["--prefix=#{prefix}",
-            "--disable-debug",
-            "--disable-dependency-tracking",
-            "--localstatedir=#{var}"]
+    args = %W[--prefix=#{prefix}
+              --disable-dependency-tracking
+              --localstatedir=#{var}]
 
     # always build with libstemmer support
     args << "--with-libstemmer"
 
     # configure script won't auto-select PostgreSQL
-    args << "--with-pgsql" if which 'pg_config'
-    args << "--without-mysql" unless which 'mysql'
+    if build.include?('mysql') || which('mysql_config')
+      args << "--with-mysql"
+    else
+      args << "--without-mysql"
+    end
+
+    args << "--with-pgsql" if build.include?('pgsql') || which('pg_config')
+    args << "--enable-id64" if build.include?('id64')
 
     system "./configure", *args
     system "make install"

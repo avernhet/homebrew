@@ -7,6 +7,14 @@ module HomebrewArgvExtension
     select {|arg| arg[0..0] == '-'}
   end
 
+  def used_options f
+    f.build.as_flags & options_only
+  end
+
+  def unused_options f
+    f.build.as_flags - options_only
+  end
+
   def formulae
     require 'formula'
     @formulae ||= downcased_unique_named.map{ |name| Formula.factory name }
@@ -14,6 +22,7 @@ module HomebrewArgvExtension
   end
 
   def kegs
+    rack = nil
     require 'keg'
     require 'formula'
     @kegs ||= downcased_unique_named.collect do |name|
@@ -45,6 +54,17 @@ module HomebrewArgvExtension
         Keg.new(linked_keg_ref.realpath)
       end
     end
+  rescue FormulaUnavailableError
+    if rack
+      raise <<-EOS.undent
+        Multiple kegs installed to #{rack}
+        However we don't know which one you refer to.
+        Please delete (with rm -rf!) all but one and then try again.
+        Sorry, we know this is lame.
+      EOS
+    else
+      raise
+    end
   end
 
   # self documenting perhaps?
@@ -59,7 +79,7 @@ module HomebrewArgvExtension
     flag? '--force'
   end
   def verbose?
-    flag? '--verbose' or ENV['HOMEBREW_VERBOSE']
+    flag? '--verbose' or ENV['VERBOSE'] or ENV['HOMEBREW_VERBOSE']
   end
   def debug?
     flag? '--debug' or ENV['HOMEBREW_DEBUG']
@@ -73,13 +93,33 @@ module HomebrewArgvExtension
   def one?
     flag? '--1'
   end
+  def dry_run?
+    include?('--dry-run') || switch?('n')
+  end
+
+  def homebrew_developer?
+    include? '--homebrew-developer' or ENV['HOMEBREW_DEVELOPER']
+  end
+
+  def ignore_deps?
+    include? '--ignore-dependencies'
+  end
+
+  def json
+    json_rev = find {|o| o =~ /--json=.+/}
+    json_rev.split("=").last if json_rev
+  end
 
   def build_head?
-    flag? '--HEAD'
+    include? '--HEAD'
   end
 
   def build_devel?
     include? '--devel'
+  end
+
+  def build_stable?
+    not (build_head? or build_devel?)
   end
 
   def build_universal?
@@ -94,12 +134,12 @@ module HomebrewArgvExtension
   end
 
   def build_bottle?
-    MacOS.bottles_supported? and include? '--build-bottle'
+    include? '--build-bottle' and MacOS.bottles_supported?(true)
   end
 
   def build_from_source?
-    flag? '--build-from-source' or ENV['HOMEBREW_BUILD_FROM_SOURCE'] \
-      or not MacOS.bottles_supported? or not options_only.empty?
+    include? '--build-from-source' or ENV['HOMEBREW_BUILD_FROM_SOURCE'] \
+      or build_head? or build_devel? or build_universal? or build_bottle?
   end
 
   def flag? flag
@@ -142,8 +182,8 @@ module HomebrewArgvExtension
     flags_to_clear.each {|flag| delete flag}
 
     yield
-
-    replace old_args
+  ensure
+    replace(old_args)
   end
 
   private

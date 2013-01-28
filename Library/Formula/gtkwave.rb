@@ -2,16 +2,15 @@ require 'formula'
 
 class Gtkwave < Formula
   homepage 'http://gtkwave.sourceforge.net/'
-  url 'http://gtkwave.sourceforge.net/gtkwave-3.3.31.tar.gz'
-  md5 'bbe65da9010a0037f9b5d0dd9da63e30'
+  url 'http://gtkwave.sourceforge.net/gtkwave-3.3.41.tar.gz'
+  sha1 'e1be0dda6b4f89399269c43ee277d62af84e6d84'
 
   depends_on 'gtk+'
   depends_on 'xz'
+  depends_on :x11
 
   def install
-    system "./configure", "--disable-debug", "--disable-dependency-tracking",
-                          "--prefix=#{prefix}",
-                          "--mandir=#{man}"
+    system './configure', "--prefix=#{prefix}", '--disable-dependency-tracking'
     system 'make install'
   end
 end

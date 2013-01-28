@@ -3,11 +3,10 @@ require 'formula'
 class ImapUw < Formula
   homepage 'http://www.washington.edu/imap/'
   url 'ftp://ftp.cac.washington.edu/imap/imap-2007f.tar.gz'
-  version '2007f'
   sha1 '7a82ebd5aae57a5dede96ac4923b63f850ff4fa7'
 
   def patches
-    if MacOS.snow_leopard?
+    if MacOS.version >= :snow_leopard
       { :p0 =>
         'https://trac.macports.org/export/63088/trunk/dports/mail/imap-uw/files/patch-snowleopard.diff'
       }

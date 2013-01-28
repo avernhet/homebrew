@@ -1,46 +1,40 @@
 require 'formula'
 
 class Qemu < Formula
-  url 'http://wiki.qemu.org/download/qemu-1.0.tar.gz'
   homepage 'http://www.qemu.org/'
-  md5 'a64b36067a191451323b0d34ebb44954'
+  url 'http://wiki.qemu-project.org/download/qemu-1.3.0.tar.bz2'
+  sha1 'ed56e8717308a56f51a6ed4c18a4335e5aacae83'
+  head 'git://git.qemu-project.org/qemu.git', :using => :git
 
   depends_on 'jpeg'
   depends_on 'gnutls'
-
-  fails_with_llvm "Segmentation faults occur at run-time with LLVM using qemu-system-arm."
+  depends_on 'glib'
+  depends_on 'pixman'
 
   def patches
-    DATA
+    # This patch fixes the semaphore fallback code for block devices,
+    # as OS X does not implement sem_timedwait() & Co.
+    #
+    # It has not been merged to the 1.3.x stable branch yet.
+    #
+    # See https://bugs.launchpad.net/qemu/+bug/1087114
+    if not build.head? then
+      { :p1 => "https://github.com/qemu/qemu/commit/a795ef8dcb8cbadffc996c41ff38927a97645234.diff"}
+    end
   end
 
   def install
-    ENV.gcc_4_2
-    system "./configure", "--prefix=#{prefix}",
-                          "--disable-user",
-                          "--enable-cocoa",
-                          "--disable-guest-agent"
+    # Disable the sdl backend. Let it use CoreAudio instead.
+    args = %W[
+      --prefix=#{prefix}
+      --cc=#{ENV.cc}
+      --host-cc=#{ENV.cc}
+      --enable-cocoa
+      --disable-bsd-user
+      --disable-guest-agent
+      --disable-sdl
+    ]
+    system "./configure", *args
     system "make install"
   end
 end
-
-__END__
-diff -u a/fpu/softfloat.h b/fpu/softfloat.h
---- a/fpu/softfloat.h	2011-12-01 21:07:34.000000000 +0100
-+++ b/fpu/softfloat.h	2012-02-15 00:33:28.000000000 +0100
-@@ -56,10 +56,14 @@
- typedef uint8_t flag;
- typedef uint8_t uint8;
- typedef int8_t int8;
--#ifndef _AIX
-+#if ! defined (_AIX) && ! defined (__APPLE__)
- typedef int uint16;
- typedef int int16;
- #endif
-+#if defined (__APPLE__)
-+typedef uint16_t uint16;
-+typedef int16_t int16;
-+#endif
- typedef unsigned int uint32;
- typedef signed int int32;
- typedef uint64_t uint64;

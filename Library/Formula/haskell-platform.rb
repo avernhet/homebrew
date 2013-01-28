@@ -1,16 +1,17 @@
 require 'formula'
 
 class HaskellPlatform < Formula
-  url 'http://lambda.haskell.org/platform/download/2011.4.0.0/haskell-platform-2011.4.0.0.tar.gz'
   homepage 'http://hackage.haskell.org/platform/'
-  sha1 '0dc3abd2f046f4437b7ea0bf1588175f16cd439b'
+  url 'http://lambda.haskell.org/platform/download/2012.4.0.0/haskell-platform-2012.4.0.0.tar.gz'
+  sha1 '7976508c50305969f64c721a1d095ae22efff8b7'
 
   depends_on 'ghc'
 
   def install
-    # libdir doesn't work if passed to configure, needs to be passed to make install
+    # libdir doesn't work if passed to configure, needs to be set in the environment
     system "./configure", "--prefix=#{prefix}", "--enable-unsupported-ghc-version"
-    system %Q(EXTRA_CONFIGURE_OPTS="--libdir=#{lib}/ghc" make install)
+    ENV['EXTRA_CONFIGURE_OPTS'] = "--libdir=#{lib}/ghc"
+    system "make install"
   end
 
   def caveats; <<-EOS.undent

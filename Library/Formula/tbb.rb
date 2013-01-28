@@ -1,10 +1,10 @@
 require 'formula'
 
 class Tbb < Formula
-  url 'http://threadingbuildingblocks.org/uploads/77/180/4.0%20update%202/tbb40_20111130oss_src.tgz'
-  version '4.0u2'
   homepage 'http://www.threadingbuildingblocks.org/'
-  sha1 '33bc0bb2f17386d21ccb4b0c3c93a115f68a8a08'
+  url 'http://threadingbuildingblocks.org/sites/default/files/software_releases/source/tbb41_20121003oss_src.tgz'
+  sha1 '072333068fa278635582846eaaa22d51c0100e09'
+  version '4.1u1'
 
   def install
     # Intel sets varying O levels on each compile command.

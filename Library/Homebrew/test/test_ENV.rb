@@ -1,11 +1,6 @@
 require 'testing_env'
-require 'utils'
 require 'hardware'
-require 'extend/ENV'
-require 'extend/ARGV'
-ENV.extend(HomebrewEnvExtension)
-ARGV.extend(HomebrewArgvExtension)
-  
+
 class EnvironmentTests < Test::Unit::TestCase
   def test_ENV_options
     ENV.gcc_4_0
@@ -20,9 +15,24 @@ class EnvironmentTests < Test::Unit::TestCase
     ENV.minimal_optimization
     ENV.no_optimization
     ENV.libxml2
-    ENV.x11
     ENV.enable_warnings
     assert !ENV.cc.empty?
     assert !ENV.cxx.empty?
+  end
+
+  def test_switching_compilers
+    ENV.llvm
+    ENV.clang
+    assert_nil ENV['LD']
+    assert_equal ENV['OBJC'], ENV['CC']
+  end
+
+  def test_with_build_environment
+    before = ENV.to_hash
+    ENV.with_build_environment do
+      ENV['foo'] = 'bar'
+    end
+    assert_nil ENV['foo']
+    assert_equal before, ENV.to_hash
   end
 end

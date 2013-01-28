@@ -2,7 +2,7 @@ require 'formula'
 
 def recursive_deps_tree f, level
   f.deps.each do |dep|
-    puts "> "*level+dep
+    puts "> "*level+dep.to_s
     recursive_deps_tree(Formula.factory(dep), level+1)
   end
 end
@@ -22,7 +22,9 @@ module Homebrew extend self
       end
     else
       raise FormulaUnspecifiedError if ARGV.named.empty?
-      all_deps = ARGV.formulae.map{ |f| ARGV.one? ? f.deps : f.recursive_deps }.intersection
+      all_deps = ARGV.formulae.map do |f|
+        ARGV.one? ? f.deps : f.recursive_deps
+      end.intersection.map(&:name)
       all_deps.sort! unless ARGV.include? "-n"
       puts all_deps
     end

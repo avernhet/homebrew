@@ -2,30 +2,11 @@ require 'formula'
 
 class Smlnj < Formula
   homepage 'http://www.smlnj.org/'
-  url 'http://smlnj.cs.uchicago.edu/dist/working/110.73/config.tgz'
-  version '110.73'
-  md5 '19dc682fa29441b0980b50b9842861bb'
+  url 'http://smlnj.cs.uchicago.edu/dist/working/110.75/config.tgz'
+  sha1 '527cb179b48abcf1463089d168b171fd05eb814d'
+  version '110.75'
 
-  def targets
-<<-EOS
-request ml-ulex
-request ml-ulex-mllex-tool
-request ml-lex
-request ml-lex-lex-ext
-request ml-yacc
-request ml-yacc-grm-ext
-request ml-antlr
-request ml-lpt-lib
-request ml-burg
-request smlnj-lib
-request tdp-util
-request cml
-request cml-lib
-request mlrisc
-request ckit
-request heap2asm
-EOS
-  end
+  env :std
 
   def install
     ENV.deparallelize
@@ -54,4 +35,26 @@ EOS
     Improvements are welcome.
     EOS
   end
+
+  def targets
+<<-EOS
+request ml-ulex
+request ml-ulex-mllex-tool
+request ml-lex
+request ml-lex-lex-ext
+request ml-yacc
+request ml-yacc-grm-ext
+request ml-antlr
+request ml-lpt-lib
+request ml-burg
+request smlnj-lib
+request tdp-util
+request cml
+request cml-lib
+request mlrisc
+request ckit
+request heap2asm
+EOS
+  end
+
 end

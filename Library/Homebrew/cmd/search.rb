@@ -4,9 +4,9 @@ require "blacklist"
 module Homebrew extend self
   def search
     if ARGV.include? '--macports'
-      exec "open", "http://www.macports.org/ports.php?by=name&substr=#{ARGV.next}"
+      exec_browser "http://www.macports.org/ports.php?by=name&substr=#{ARGV.next}"
     elsif ARGV.include? '--fink'
-      exec "open", "http://pdb.finkproject.org/pdb/browse.php?summary=#{ARGV.next}"
+      exec_browser "http://pdb.finkproject.org/pdb/browse.php?summary=#{ARGV.next}"
     else
       query = ARGV.first
       rx = case query
@@ -28,11 +28,52 @@ module Homebrew extend self
         puts msg
       end
 
-      if search_results.empty? and not blacklisted? query
-        puts "No formula found for \"#{query}\". Searching open pull requests..."
-        GitHub.find_pull_requests(rx) { |pull| puts pull }
+      if query
+        $found = search_results.length
+
+        threads = []
+        results = []
+        threads << Thread.new { search_tap "josegonzalez", "php", rx }
+        threads << Thread.new { search_tap "alanthing", "apachemod", rx }
+        threads << Thread.new { search_tap "Homebrew", "versions", rx }
+        threads << Thread.new { search_tap "Homebrew", "dupes", rx }
+        threads << Thread.new { search_tap "Homebrew", "games", rx }
+        threads << Thread.new { search_tap "Homebrew", "science", rx }
+
+        threads.each do |t|
+          results << t.value
+        end
+
+        results.each { |r| puts_columns r }
+
+        if $found == 0 and not blacklisted? query
+          puts "No formula found for \"#{query}\". Searching open pull requests..."
+          GitHub.find_pull_requests(rx) { |pull| puts pull }
+        end
       end
     end
+  end
+
+  def search_tap user, repo, rx
+    return [] if (HOMEBREW_LIBRARY/"Taps/#{user.downcase}-#{repo.downcase}").directory?
+
+    require 'open-uri'
+    require 'vendor/multi_json'
+
+    results = []
+    open "https://api.github.com/repos/#{user}/homebrew-#{repo}/git/trees/HEAD?recursive=1" do |f|
+      user.downcase! if user == "Homebrew" # special handling for the Homebrew organization
+      MultiJson.decode(f.read)["tree"].map{ |hash| hash['path'] }.compact.each do |file|
+        name = File.basename(file, '.rb')
+        if file =~ /\.rb$/ and name =~ rx
+          results << "#{user}/#{repo}/#{name}"
+          $found += 1
+        end
+      end
+    end
+    results
+  rescue
+    []
   end
 
   def search_brews rx

@@ -2,9 +2,11 @@ require 'formula'
 
 class Auctex < Formula
   homepage 'http://ftp.gnu.org/pub/gnu/auctex'
-  url 'http://ftpmirror.gnu.org/auctex/auctex-11.86.tar.gz'
-  mirror 'http://ftp.gnu.org/gnu/auctex/auctex-11.86.tar.gz'
-  md5 '6bc33a67b6ac59db1aa238f3693b36d2'
+  url 'http://ftpmirror.gnu.org/auctex/auctex-11.87.tar.gz'
+  mirror 'http://ftp.gnu.org/gnu/auctex/auctex-11.87.tar.gz'
+  sha1 '0be92c7d8f89d57346fe07f05a1a045ffd11cd71'
+
+  depends_on :tex
 
   def options
     [['--with-emacs=</full/path/to/emacs>', "Force a different emacs"]]
@@ -21,15 +23,6 @@ class Auctex < Formula
   end
 
   def install
-    unless which 'latex'
-      onoe <<-EOS.undent
-        AUCTeX requires a TeX/LaTeX installation; aborting now.
-        You can obtain the TeX distribution for Mac OS X from
-            http://www.tug.org/mactex/
-      EOS
-      exit 1
-    end
-
     # configure fails if the texmf dir is not there yet
     brew_texmf = share + 'texmf'
     brew_texmf.mkpath

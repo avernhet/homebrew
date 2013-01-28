@@ -2,29 +2,21 @@ require 'formula'
 
 class Mydumper < Formula
   homepage 'http://www.mydumper.org/'
-  url 'http://launchpadlibrarian.net/77098505/mydumper-0.5.1.tar.gz'
-  md5 'b4df42dfe23f308ab13eb6ecb73a0d21'
+  url 'https://launchpad.net/mydumper/0.5/0.5.2/+download/mydumper-0.5.2.tar.gz'
+  sha1 '1eb1a341635c252f9f4cf611af544e0c94b1687d'
 
   depends_on 'pkg-config' => :build
   depends_on 'cmake' => :build
+  depends_on :mysql
   depends_on 'glib'
   depends_on 'pcre'
 
   def install
-    unless which 'mysql_config'
-      opoo "`mysql_config` was not found"
-      puts "This software requires the MySQL client libraries."
-      puts "You can install them via Homebrew with one of these:"
-      puts "  brew install mysql-connector-c"
-      puts "  brew install mysql [--client-only]"
-      puts "Without the client libraries, this formula will fail to compile."
-    end
-
-    system "cmake #{std_cmake_parameters} ."
+    system "cmake", ".", *std_cmake_args
     system "make install"
   end
 
   def test
-    system "#{bin}/mydumper --version"
+    system "#{bin}/mydumper", "--version"
   end
 end

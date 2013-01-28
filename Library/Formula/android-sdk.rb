@@ -1,30 +1,37 @@
 require 'formula'
 
-class AndroidSdk < Formula
-  url 'http://dl.google.com/android/android-sdk_r16-macosx.zip'
-  homepage 'http://developer.android.com/index.html'
-  md5 'd1dc2b6f13eed5e3ce5cf26c4e4c47aa'
-  version 'r16'
+class AdbBashCompletion < Formula
+  url 'https://raw.github.com/CyanogenMod/android_sdk/3bf0a01ef66a9b99149ba3faaf34a1362581dd01/bash_completion/adb.bash'
+  sha1 '8e7dad45b8c98c359516d4a818a9090125bc6f7a'
+  version 'cyanogenmod_jellybean'
+end
 
+class AndroidSdk < Formula
+  homepage 'http://developer.android.com/index.html'
+  url 'http://dl.google.com/android/android-sdk_r21.0.1-macosx.zip'
+  version 'r21.0.1'
+  sha1 '1628ed39aa4bd88423b31eb505b3529cda36794c'
+
+  # TODO docs and platform-tools
+  # See the long comment below for the associated problems
   def self.var_dirs
-    %w[platforms samples temp add-ons]
-    # TODO docs, google-market_licensing and platform-tools
-    # See the long comment below for the associated problems
+    %w[platforms samples temp add-ons sources system-images extras]
   end
 
   skip_clean var_dirs
 
   def install
-    mkdir bin
-
     mv 'SDK Readme.txt', prefix/'README'
     mv 'tools', prefix
 
-    %w[android apkbuilder ddms dmtracedump draw9patch emulator
-       emulator-arm emulator-x86 hierarchyviewer hprof-conv
-       lint mksdcard monkeyrunner sqlite3 traceview
-       zipalign].each do |tool|
-      (bin/tool).make_link(prefix/'tools'/tool)
+    %w[android apkbuilder ddms dmtracedump draw9patch etc1tool emulator
+    emulator-arm emulator-x86 hierarchyviewer hprof-conv lint mksdcard
+    monitor monkeyrunner traceview zipalign].each do |tool|
+      (bin/tool).write <<-EOS.undent
+        #!/bin/sh
+        TOOL="#{prefix}/tools/#{tool}"
+        exec "$TOOL" "$@"
+      EOS
     end
 
     # this is data that should be preserved across upgrades, but the Android
@@ -36,27 +43,31 @@ class AndroidSdk < Formula
       dst.make_relative_symlink src
     end
 
-    (bin+'adb').write <<-EOS.undent
-      #!/bin/sh
-      ADB="#{prefix}/platform-tools/adb"
-      test -f "$ADB" && exec "$ADB" "$@"
-      echo Use the \\`android\\' tool to install adb.
+    %w[aapt adb aidl dexdump dx fastboot llvm-rs-cc].each do |platform_tool|
+      (bin/platform_tool).write <<-EOS.undent
+        #!/bin/sh
+        PLATFORM_TOOL="#{prefix}/platform-tools/#{platform_tool}"
+        test -f "$PLATFORM_TOOL" && exec "$PLATFORM_TOOL" "$@"
+        echo Use the \\`android\\' tool to install the \\"Android SDK Platform-tools\\".
       EOS
-    (bin+'adb').chmod 0755
+    end
+
+    AdbBashCompletion.new.brew do
+      (prefix+'etc/bash_completion.d').install 'adb.bash' => 'adb-completion.bash'
+    end
   end
 
   def caveats; <<-EOS.undent
     Now run the `android' tool to install the actual SDK stuff.
 
-    NOTE you should tell Eclipse, IntelliJ etc. to use the Android-SDK found
-    here: #{prefix}
+    The Android-SDK location for IDEs such as Eclipse, IntelliJ etc is:
+      #{prefix}
 
-    You will have to install the platform-tools EVERY time this formula updates.
-    If you want to try and fix this then see the comment in this formula.
+    You will have to install the platform-tools and docs EVERY time this formula
+    updates. If you want to try and fix this then see the comment in this formula.
 
     You may need to add the following to your .bashrc:
-
-       export ANDROID_SDK_ROOT=#{prefix}
+      export ANDROID_SDK_ROOT=#{opt_prefix}
     EOS
   end
 
