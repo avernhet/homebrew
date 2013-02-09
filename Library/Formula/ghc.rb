@@ -34,7 +34,7 @@ class Ghc < Formula
 
   env :std
 
-  depends_on NeedsSnowLeopard.new
+  depends_on NeedsSnowLeopard
 
   option '32-bit'
   option 'tests', 'Verify the build using the testsuite in Fast Mode, 5 min'
@@ -46,7 +46,7 @@ class Ghc < Formula
   end
 
   fails_with :clang do
-    build 421
+    build 425
     cause <<-EOS.undent
       Building with Clang configures GHC to use Clang as its preprocessor,
       which causes subsequent GHC-based builds to fail.

@@ -2,8 +2,8 @@ require 'formula'
 
 class Opam < Formula
   homepage 'https://github.com/OCamlPro/opam'
-  url 'https://github.com/OCamlPro/opam/archive/0.9.1.tar.gz'
-  sha1 '49622e3677ed4514b1c4a4eb59beccc2f0c4960c'
+  url 'https://github.com/OCamlPro/opam/archive/0.9.2.tar.gz'
+  sha1 '993ad778101589bbad089e34922d0e60180698a0'
 
   depends_on "objective-caml"
 
@@ -11,6 +11,9 @@ class Opam < Formula
     system "./configure", "--prefix=#{prefix}"
     system "make"
     system "make install"
+
+    bash_completion.install "shell/opam_completion.sh"
+    zsh_completion.install "shell/opam_completion_zsh.sh"
   end
 
   def test
