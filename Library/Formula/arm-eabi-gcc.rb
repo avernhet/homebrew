@@ -1,20 +1,21 @@
 require 'formula'
 
 class ArmEabiNewLib <Formula
-  url       'ftp://sources.redhat.com/pub/newlib/newlib-1.20.0.tar.gz'
+  url       'ftp://sourceware.org/pub/newlib/newlib-2.0.0.tar.gz'
   homepage  'http://sourceware.org/newlib/'
-  sha1      '65e7bdbeda0cbbf99c8160df573fd04d1cbe00d1'
+  sha1      'ea6b5727162453284791869e905f39fb8fab8d3f'
 end
 
 class ArmEabiGcc <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.7.2/gcc-4.7.2.tar.bz2'
+  #url       'http://ftpmirror.gnu.org/gcc/gcc-4.8.0/gcc-4.8.0.tar.bz2'
+  url 'file:///Users/eblot/Desktop/gcc-4.8.0.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      'a464ba0f26eef24c29bcd1e7489421117fb9ee35'
+  sha1      'b4ee6e9bdebc65223f95067d0cc1a634b59dad72'
 
   depends_on 'gmp'
   depends_on 'mpfr'
   depends_on 'libmpc'
-  depends_on 'ppl'
+  #depends_on 'ppl'
   depends_on 'cloog'
   depends_on 'libelf'
   depends_on 'arm-eabi-binutils'
@@ -30,7 +31,7 @@ class ArmEabiGcc <Formula
     # If anyone knows how to extract an archive into an existing directory
     # with homebrew, please - let me know!
     coredir = Dir.pwd
-    ArmEabiNewLib.new.brew { 
+    ArmEabiNewLib.new.brew {
         system "ditto", Dir.pwd+'/libgloss', coredir+'/libgloss'
         system "ditto", Dir.pwd+'/newlib', coredir+'/newlib'
     }
@@ -82,21 +83,6 @@ class ArmEabiGcc <Formula
 end
 
 __END__
---- a/configure	2012-08-09 22:19:34.000000000 +0200
-+++ b/configure	2012-08-09 22:19:57.000000000 +0200
-@@ -5689,12 +5689,6 @@
- int
- main ()
- {
--
--    #if PPL_VERSION_MAJOR != 0 || PPL_VERSION_MINOR < 11
--    choke me
--    #endif
--
--  ;
-   return 0;
- }
- _ACEOF
 --- a/gcc/config/arm/t-arm-elf	2011-01-03 21:52:22.000000000 +0100
 +++ b/gcc/config/arm/t-arm-elf	2011-07-18 16:03:31.000000000 +0200
 @@ -71,8 +71,8 @@

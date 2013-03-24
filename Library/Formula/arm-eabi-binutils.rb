@@ -1,9 +1,9 @@
 require 'formula'
 
 class ArmEabiBinutils <Formula
-  url 'http://ftp.gnu.org/gnu/binutils/binutils-2.22.tar.bz2'
+  url 'http://ftp.gnu.org/gnu/binutils/binutils-2.23.1.tar.bz2'
   homepage 'http://www.gnu.org/software/binutils/'
-  sha1 '65b304a0b9a53a686ce50a01173d1f40f8efe404'
+  sha1 '587fca86f6c85949576f4536a90a3c76ffc1a3e1'
 
   depends_on 'gmp'
   depends_on 'mpfr'

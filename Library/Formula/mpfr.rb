@@ -3,10 +3,9 @@ require 'formula'
 class Mpfr < Formula
   homepage 'http://www.mpfr.org/'
   # Upstream is down a lot, so use the GNU mirror + Gist for patches
-  url 'http://ftpmirror.gnu.org/mpfr/mpfr-3.1.1.tar.bz2'
-  mirror 'http://ftp.gnu.org/gnu/mpfr/mpfr-3.1.1.tar.bz2'
-  version '3.1.1-p2'
-  sha1 'f632d43943ff9f13c184fa13b9a6e8c7f420f4dd'
+  url 'http://ftpmirror.gnu.org/mpfr/mpfr-3.1.2.tar.bz2'
+  mirror 'http://ftp.gnu.org/gnu/mpfr/mpfr-3.1.2.tar.bz2'
+  sha1 '46d5a11a59a4e31f74f73dd70c5d57a59de2d0b4'
 
   depends_on 'gmp'
 
@@ -15,10 +14,6 @@ class Mpfr < Formula
   # Segfaults under superenv with clang 4.1/421. See:
   # https://github.com/mxcl/homebrew/issues/15061
   env :std if MacOS.clang_build_version < 425
-
-  def patches
-    "https://gist.github.com/raw/4472199/42c0b207037a133527083d12adc9028b4da429ee/gistfile1.txt"
-  end
 
   def install
     args = ["--disable-dependency-tracking",

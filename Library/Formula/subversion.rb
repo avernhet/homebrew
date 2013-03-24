@@ -82,7 +82,7 @@ class Subversion < Formula
             "--without-neon",
             "--with-zlib=/usr",
             "--with-sqlite=#{Formula.factory('sqlite').opt_prefix}",
-            "--with-serf=#{Formula.factory('serf').opt_prefix}",
+            "--with-serf=/usr/local/homebrew",
             "--disable-mod-activation",
             "--without-apache-libexecdir",
             "--without-berkeley-db"]
