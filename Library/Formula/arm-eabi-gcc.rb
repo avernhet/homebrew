@@ -73,7 +73,7 @@ class ArmEabiGcc <Formula
                   "--with-libelf=#{libelf.opt_prefix}",
                   "--with-gxx-include-dir=#{prefix}/arm-eabi/include",
                   "--disable-debug", "--disable-__cxa_atexit",
-                  "--with-pkgversion=Neotion-SDK2-Gandalf",
+                  "--with-pkgversion=Neotion-SDK2-Haldir",
                   "--with-bugurl=http://www.neotion.com"
       # Temp. workaround until GCC installation script is fixed
       system "mkdir -p #{prefix}/arm-eabi/lib/fpu/interwork"
