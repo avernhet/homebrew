@@ -1,20 +1,29 @@
-require 'macos/version'
+require 'os/mac/version'
 
 module MacOS extend self
 
   # This can be compared to numerics, strings, or symbols
   # using the standard Ruby Comparable methods.
   def version
-    Version.new(MACOS_VERSION)
+    @version ||= Version.new(MACOS_VERSION)
   end
 
   def cat
-    if version == :mountain_lion then :mountain_lion
-    elsif version == :lion then :lion
-    elsif version == :snow_leopard
+    @cat ||= uncached_cat
+  end
+
+  def uncached_cat
+    case MacOS.version
+    when 10.8
+      :mountain_lion
+    when 10.7
+      :lion
+    when 10.6
       Hardware.is_64_bit? ? :snow_leopard : :snow_leopard_32
-    elsif version == :leopard then :leopard
-    else nil
+    when 10.5
+      :leopard
+    else
+      Hardware::CPU.family if Hardware::CPU.type == :ppc
     end
   end
 
@@ -126,6 +135,7 @@ module MacOS extend self
       $1.to_i
     end
   end
+  alias_method :gcc_build_version, :gcc_42_build_version
 
   def llvm_build_version
     # for Xcode 3 on OS X 10.5 this will not exist
@@ -204,6 +214,8 @@ module MacOS extend self
     "4.5.1" => { :llvm_build => 2336, :clang => "4.1", :clang_build => 421 },
     "4.5.2" => { :llvm_build => 2336, :clang => "4.1", :clang_build => 421 },
     "4.6"   => { :llvm_build => 2336, :clang => "4.2", :clang_build => 425 },
+    "4.6.1" => { :llvm_build => 2336, :clang => "4.2", :clang_build => 425 },
+    "4.6.2" => { :llvm_build => 2336, :clang => "4.2", :clang_build => 425 },
   }
 
   def compilers_standard?
@@ -227,6 +239,7 @@ module MacOS extend self
   end
 
   def mdfind id
+    return [] unless MACOS
     (@mdfind ||= {}).fetch(id.to_s) do
       @mdfind[id.to_s] = `/usr/bin/mdfind "kMDItemCFBundleIdentifier == '#{id}'"`.split("\n")
     end
@@ -237,5 +250,5 @@ module MacOS extend self
   end
 end
 
-require 'macos/xcode'
-require 'macos/xquartz'
+require 'os/mac/xcode'
+require 'os/mac/xquartz'

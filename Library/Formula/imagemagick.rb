@@ -15,6 +15,7 @@ class Imagemagick < Formula
   option 'with-quantum-depth-8', 'Compile with a quantum depth of 8 bit'
   option 'with-quantum-depth-16', 'Compile with a quantum depth of 16 bit'
   option 'with-quantum-depth-32', 'Compile with a quantum depth of 32 bit'
+  option 'without-magick-plus-plus', 'disable build/install of Magick++'
 
   depends_on :libltdl
 
@@ -45,6 +46,12 @@ class Imagemagick < Formula
     sha1 '8a1a49f25274e34d73c1c0af27424fa68006f34f' => :mountain_lion
     sha1 'b0027bd4b4e6a82d3958eee18e5aaf3bffe1f4f1' => :lion
     sha1 'b5b3ffb0c4bf9fe247b9fdeea789298c71904a12' => :snow_leopard
+  end
+
+  def pour_bottle?
+    # If libtool is keg-only it currently breaks the bottle.
+    # This is a temporary workaround until we have a better fix.
+    not Formula.factory('libtool').keg_only?
   end
 
   skip_clean :la

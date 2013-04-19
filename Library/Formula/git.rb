@@ -1,19 +1,19 @@
 require 'formula'
 
 class GitManuals < Formula
-  url 'http://git-core.googlecode.com/files/git-manpages-1.8.1.5.tar.gz'
-  sha1 '7f211a2f8fe36180373a20b32eb930018883bfd1'
+  url 'http://git-core.googlecode.com/files/git-manpages-1.8.2.1.tar.gz'
+  sha1 '6c40ace4682188d0c01b1091b37276151bc77a74'
 end
 
 class GitHtmldocs < Formula
-  url 'http://git-core.googlecode.com/files/git-htmldocs-1.8.1.5.tar.gz'
-  sha1 '84d832fc70a053e97ce336c4a0af0371461e469f'
+  url 'http://git-core.googlecode.com/files/git-htmldocs-1.8.2.1.tar.gz'
+  sha1 'bf4abd0e020d24ee47c64760e9fe4372c596d354'
 end
 
 class Git < Formula
   homepage 'http://git-scm.com'
-  url 'http://git-core.googlecode.com/files/git-1.8.1.5.tar.gz'
-  sha1 '3349a15de7c5501715bda9b68301d0406272f8e0'
+  url 'http://git-core.googlecode.com/files/git-1.8.2.1.tar.gz'
+  sha1 'ad9f833e509ba31c83efe336fd3599e89a39394b'
 
   head 'https://github.com/git/git.git'
 
@@ -21,6 +21,7 @@ class Git < Formula
   option 'without-completions', 'Disable bash/zsh completions from "contrib" directory'
 
   depends_on 'pcre' => :optional
+  depends_on 'gettext' => :optional
 
   def install
     # If these things are installed, tell Git build system to not use them
@@ -28,7 +29,6 @@ class Git < Formula
     ENV['NO_DARWIN_PORTS'] = '1'
     ENV['V'] = '1' # build verbosely
     ENV['NO_R_TO_GCC_LINKER'] = '1' # pass arguments to LD correctly
-    ENV['NO_GETTEXT'] = '1'
     ENV['PERL_PATH'] = which 'perl' # workaround for users of perlbrew
     ENV['PYTHON_PATH'] = which 'python' # python can be brewed or unbrewed
 
@@ -41,6 +41,8 @@ class Git < Formula
       ENV['USE_LIBPCRE'] = '1'
       ENV['LIBPCREDIR'] = HOMEBREW_PREFIX
     end
+
+    ENV['NO_GETTEXT'] = '1' unless build.with? 'gettext'
 
     system "make", "prefix=#{prefix}",
                    "CC=#{ENV.cc}",
