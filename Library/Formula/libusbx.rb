@@ -2,22 +2,30 @@ require 'formula'
 
 class Libusbx < Formula
   homepage 'http://libusbx.org'
-  url 'downloads.sourceforge.net/project/libusbx/releases/1.0.12/source/libusbx-1.0.12.tar.bz2'
-  sha1 '53621af3f667844207de862fcc39f9b5a4e99c42'
+  url 'http://sourceforge.net/projects/libusbx/files/releases/1.0.15/source/libusbx-1.0.15.tar.bz2'
+  sha1 '1ca868f775093b0109d9240cb3ccd36367764dc6'
 
-  def options
-    [["--universal", "Build a universal binary."]]
+  head 'https://github.com/libusbx/libusbx.git'
+
+  conflicts_with 'libusb',
+    :because => 'both provide libusb compatible libraries'
+
+  if build.head?
+    depends_on :automake
+    depends_on :libtool
   end
 
-  if ARGV.build_head? and MacOS.xcode_version >= "4.3"
-    depends_on "automake" => :build
-    depends_on "libtool" => :build
-  end
+  option :universal
+  option 'no-runtime-logging', 'Build without runtime logging functionality'
+  option 'with-default-log-level-debug' 'Build with default runtime log level of debug (instead of none)'
 
   def install
-    ENV.universal_binary if ARGV.build_universal?
-    system "./autogen.sh" if ARGV.build_head?
-    system "./configure", "--prefix=#{prefix}", "--disable-dependency-tracking"
+    ENV.universal_binary if build.universal?
+    system "./autogen.sh" if build.head?
+    args = %W[--disable-dependency-tracking --prefix=#{prefix}]
+    args << "--disable-log" if build.include? 'no-runtime-logging'
+    args << "--enable-debug-log" if build.include? 'with-default-log-level-debug'
+    system "./configure", *args
     system "make install"
   end
 end

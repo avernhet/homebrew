@@ -122,17 +122,17 @@ class Pathname
 
   # extended to support common double extensions
   alias extname_old extname
-  def extname
-    BOTTLE_EXTNAME_RX.match to_s
+  def extname(path=to_s)
+    BOTTLE_EXTNAME_RX.match(path)
     return $1 if $1
-    /(\.(tar|cpio)\.(gz|bz2|xz|Z))$/.match to_s
+    /(\.(tar|cpio)\.(gz|bz2|xz|Z))$/.match(path)
     return $1 if $1
-    return File.extname(to_s)
+    return File.extname(path)
   end
 
   # for filetypes we support, basename without extension
   def stem
-    return File.basename(to_s, extname)
+    File.basename((path = to_s), extname(path))
   end
 
   # I don't trust the children.length == 0 check particularly, not to mention
@@ -141,14 +141,14 @@ class Pathname
   def rmdir_if_possible
     rmdir
     true
-  rescue SystemCallError => e
-    # OK, maybe there was only a single `.DS_Store` file in that folder
-    if (self/'.DS_Store').exist? && self.children.length == 1
-      (self/'.DS_Store').unlink
+  rescue Errno::ENOTEMPTY
+    if (ds_store = self+'.DS_Store').exist? && children.length == 1
+      ds_store.unlink
       retry
+    else
+      false
     end
-
-    raise unless e.errno == Errno::ENOTEMPTY::Errno or e.errno == Errno::EACCES::Errno or e.errno == Errno::ENOENT::Errno
+  rescue Errno::EACCES, Errno::ENOENT
     false
   end
 
@@ -386,6 +386,35 @@ class Pathname
     end
   end
 
+  # We redefine these private methods in order to add the /o modifier to
+  # the Regexp literals, which forces string interpolation to happen only
+  # once instead of each time the method is called. This is fixed in 1.9+.
+  if RUBY_VERSION <= "1.8.7"
+    alias_method :old_chop_basename, :chop_basename
+    def chop_basename(path)
+      base = File.basename(path)
+      if /\A#{Pathname::SEPARATOR_PAT}?\z/o =~ base
+        return nil
+      else
+        return path[0, path.rindex(base)], base
+      end
+    end
+    private :chop_basename
+
+    alias_method :old_prepend_prefix, :prepend_prefix
+    def prepend_prefix(prefix, relpath)
+      if relpath.empty?
+        File.dirname(prefix)
+      elsif /#{SEPARATOR_PAT}/o =~ prefix
+        prefix = File.dirname(prefix)
+        prefix = File.join(prefix, "") if File.basename(prefix + 'a') != 'a'
+        prefix + relpath
+      else
+        prefix + relpath
+      end
+    end
+    private :prepend_prefix
+  end
 end
 
 # sets $n and $d so you can observe creation of stuff

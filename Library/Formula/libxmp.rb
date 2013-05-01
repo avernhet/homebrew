@@ -2,16 +2,22 @@ require 'formula'
 
 class Libxmp < Formula
   homepage 'http://xmp.sourceforge.net'
-  url 'http://downloads.sourceforge.net/project/xmp/libxmp/4.0.1/libxmp-4.0.1.tar.gz'
-  sha1 '2deeb3df362f01dcd39a874c83010c02bf4e8177'
-  head 'git://xmp.git.sourceforge.net/gitroot/xmp/xmp'
+  url 'http://downloads.sourceforge.net/project/xmp/libxmp/4.1.0/libxmp-4.1.0.tar.gz'
+  sha1 '778df5d2bbbf49a454024753c07dca6fb60bfdf9'
+  head 'git://git.code.sf.net/p/xmp/libxmp'
 
   depends_on :autoconf if build.head?
 
-  # Fixes channel volume setting
-  # Merged upstream, will be in 4.0.2
   def patches
-    "http://sourceforge.net/mailarchive/attachment.php?list_name=xmp-devel&message_id=CAGfWt5eaw-5ofKGpM6SO%3D%2BwB0cyVZNi4Y1NFBRnOAXyFqu56yg%40mail.gmail.com&counter=1"
+    [
+      # disables symbol versioning via alias, which compiler rejects:
+      # "only weak aliases are supported in this configuration"
+      "https://github.com/cmatsuoka/libxmp/commit/ca0ba5c9bba275b964e9a2b61e2c089ef26c4096.patch",
+      # upstream patches for build failures due to strncat/strncpy macros;
+      # can remove on next release
+      "https://github.com/cmatsuoka/libxmp/commit/c1c58d926912299c41e7828d1d8954a0745da72c.patch",
+      "https://github.com/cmatsuoka/libxmp/commit/d8483eb3d330455e42b118e54e0f88ef2acde56d.patch"
+    ]
   end unless build.head?
 
   def install
