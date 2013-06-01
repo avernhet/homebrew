@@ -5,8 +5,8 @@ class WineGecko < Formula
   sha1 'c30aa99621e98336eb4b7e2074118b8af8ea2ad5'
 
   devel do
-    url 'http://downloads.sourceforge.net/wine/wine_gecko-1.9-x86.msi', :using => :nounzip
-    sha1 'd2553224848a926eacfa8685662ff1d7e8be2428'
+    url 'http://downloads.sourceforge.net/wine/wine_gecko-2.21-x86.msi', :using => :nounzip
+    sha1 'a514fc4d53783a586c7880a676c415695fe934a3'
   end
 end
 
@@ -27,8 +27,8 @@ class Wine < Formula
     # updating too
     #  * http://wiki.winehq.org/Gecko
     #  * http://wiki.winehq.org/Mono
-    url 'http://downloads.sourceforge.net/project/wine/Source/wine-1.5.28.tar.bz2'
-    sha1 'bc543b215dd25efc7d76c6ffa99672c6e3d15d61'
+    url 'http://downloads.sourceforge.net/project/wine/Source/wine-1.5.31.tar.bz2'
+    sha1 '37a647c9f2448bb756f2e1fb4a431dcc370e14ec'
   end
 
   env :std
@@ -43,6 +43,7 @@ class Wine < Formula
   depends_on 'libicns'
   depends_on 'libtiff'
   depends_on 'little-cms'
+  depends_on 'gnutls' if build.devel?
 
   fails_with :llvm do
     build 2336

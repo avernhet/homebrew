@@ -60,13 +60,14 @@ __brewcomp ()
 __brew_complete_formulae ()
 {
     local cur="${COMP_WORDS[COMP_CWORD]}"
-    local ff=$(\ls $(brew --repository)/Library/Formula 2>/dev/null | sed 's/\.rb//g')
-    local af=$(\ls $(brew --repository)/Library/Aliases 2>/dev/null | sed 's/\.rb//g')
+    local lib=$(brew --repository)/Library
+    local ff=$(\ls ${lib}/Formula 2>/dev/null | sed 's/\.rb//g')
+    local af=$(\ls ${lib}/Aliases 2>/dev/null | sed 's/\.rb//g')
     local tf tap
 
-    for dir in $(\ls $(brew --repository)/Library/Taps 2>/dev/null); do
+    for dir in $(\ls ${lib}/Taps 2>/dev/null); do
         tap="$(echo "$dir" | sed 's|-|/|g')"
-        tf="$tf $(\ls -1R "$(brew --repository)/Library/Taps/$dir" 2>/dev/null |
+        tf="$tf $(\ls -1R "${lib}/Taps/${dir}" 2>/dev/null |
                   grep '.\+.rb' | sed -E 's|(.+)\.rb|'"${tap}"'/\1|g')"
     done
 
@@ -219,7 +220,7 @@ _brew_install ()
                 --use-gcc
                 --use-llvm
                 --verbose
-                $(brew options --compact "$prv")
+                $(brew options --compact "$prv" 2>/dev/null)
                 "
         fi
         return
@@ -233,7 +234,7 @@ _brew_link ()
     local cur="${COMP_WORDS[COMP_CWORD]}"
     case "$cur" in
     --*)
-        __brewcomp "--dry-run --overwrite"
+        __brewcomp "--dry-run --overwrite --force"
         return
         ;;
     esac
@@ -312,7 +313,7 @@ _brew_search ()
     local cur="${COMP_WORDS[COMP_CWORD]}"
     case "$cur" in
     --*)
-        __brewcomp "--fink --macports"
+        __brewcomp "--debian --fink --macports"
         return
         ;;
     esac
