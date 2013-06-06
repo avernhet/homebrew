@@ -1,4 +1,5 @@
 require 'os/mac/version'
+require 'hardware'
 
 module MacOS extend self
 
@@ -27,11 +28,16 @@ module MacOS extend self
     end
   end
 
-  # TODO: Can be removed when all bottles migrated to underscored cat symbols.
-  def cat_without_underscores
-    possibly_underscored_cat = cat
-    return nil unless possibly_underscored_cat
-    cat.to_s.gsub('_', '').to_sym
+  def oldest_cpu
+    if Hardware::CPU.type == :intel
+      if Hardware::CPU.is_64_bit?
+        :core2
+      else
+        :core
+      end
+    else
+      Hardware::CPU.family
+    end
   end
 
   def locate tool
@@ -127,6 +133,7 @@ module MacOS extend self
       $1.to_i
     end
   end
+  alias_method :gcc_4_0_build_version, :gcc_40_build_version
 
   def gcc_42_build_version
     @gcc_42_build_version ||= if locate("gcc-4.2") \

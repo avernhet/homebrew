@@ -2,8 +2,8 @@ require 'formula'
 
 class Libvirt < Formula
   homepage 'http://www.libvirt.org'
-  url 'http://libvirt.org/sources/libvirt-1.0.4.tar.gz'
-  sha256 'd94c99ce286f5a89eb02c9f3d9d620930df1f9348262a60199b4a565a222c9a0'
+  url 'http://libvirt.org/sources/libvirt-1.0.6.tar.gz'
+  sha256 'a188eb2056d7936c4c9605f4d435b9097880ec359e10be6546f2c9fa665de67d'
 
   option 'without-libvirtd', 'Build only the virsh client and development libraries'
 

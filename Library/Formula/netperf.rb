@@ -1,9 +1,9 @@
 require 'formula'
 
 class Netperf < Formula
-  url 'ftp://ftp.netperf.org//netperf/netperf-2.5.0.tar.bz2'
-  homepage 'http://www.netperf.org/netperf/NetperfPage.html'
-  md5 'fe23629f061a161b9d52d39b16620318'
+  homepage 'http://netperf.org'
+  url 'ftp://ftp.netperf.org/netperf/netperf-2.6.0.tar.bz2'
+  sha1 '3e1be4e7c3f7a838c4d5c00c6d20a619b320bfef'
 
   def install
     system "./configure", "--disable-dependency-tracking",
@@ -11,4 +11,7 @@ class Netperf < Formula
     system "make install"
   end
 
+  test do
+    system "#{bin}/netperf -h | cat"
+  end
 end

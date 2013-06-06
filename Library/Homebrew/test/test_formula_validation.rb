@@ -2,10 +2,6 @@ require 'testing_env'
 require 'formula'
 
 class FormulaValidationTests < Test::Unit::TestCase
-  def formula(*args, &block)
-    Class.new(Formula, &block).new(*args)
-  end
-
   def assert_invalid(attr, &block)
     e = assert_raises(FormulaValidationError, &block)
     assert_equal attr, e.attr
@@ -78,7 +74,6 @@ class FormulaValidationTests < Test::Unit::TestCase
   end
 
   def test_empty_formula_invalid
-    e = assert_raises(RuntimeError) { formula {} }
-    assert_equal "Formulae require at least a URL", e.message
+    assert_raises(FormulaSpecificationError) { formula {} }
   end
 end

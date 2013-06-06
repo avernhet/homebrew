@@ -1,25 +1,26 @@
 require 'formula'
 
 class GitManuals < Formula
-  url 'http://git-core.googlecode.com/files/git-manpages-1.8.2.1.tar.gz'
-  sha1 '6c40ace4682188d0c01b1091b37276151bc77a74'
+  url 'http://git-core.googlecode.com/files/git-manpages-1.8.2.3.tar.gz'
+  sha1 'eb04a2540ff9998e0887a4b862641ac1db723f3e'
 end
 
 class GitHtmldocs < Formula
-  url 'http://git-core.googlecode.com/files/git-htmldocs-1.8.2.1.tar.gz'
-  sha1 'bf4abd0e020d24ee47c64760e9fe4372c596d354'
+  url 'http://git-core.googlecode.com/files/git-htmldocs-1.8.2.3.tar.gz'
+  sha1 'b8d6b3c4077d37b34bf08b6eb53c4ee5901fa2f9'
 end
 
 class Git < Formula
   homepage 'http://git-scm.com'
-  url 'http://git-core.googlecode.com/files/git-1.8.2.1.tar.gz'
-  sha1 'ad9f833e509ba31c83efe336fd3599e89a39394b'
+  url 'http://git-core.googlecode.com/files/git-1.8.2.3.tar.gz'
+  sha1 '2831f7deec472db4d0d0cdffb4d82d91cecdf295'
 
   head 'https://github.com/git/git.git'
 
   option 'with-blk-sha1', 'Compile with the block-optimized SHA1 implementation'
   option 'without-completions', 'Disable bash/zsh completions from "contrib" directory'
 
+  depends_on :python
   depends_on 'pcre' => :optional
   depends_on 'gettext' => :optional
 
@@ -29,8 +30,9 @@ class Git < Formula
     ENV['NO_DARWIN_PORTS'] = '1'
     ENV['V'] = '1' # build verbosely
     ENV['NO_R_TO_GCC_LINKER'] = '1' # pass arguments to LD correctly
+
     ENV['PERL_PATH'] = which 'perl' # workaround for users of perlbrew
-    ENV['PYTHON_PATH'] = which 'python' # python can be brewed or unbrewed
+    ENV['PYTHON_PATH'] = python.binary if python
 
     # Clean XCode 4.x installs don't include Perl MakeMaker
     ENV['NO_PERL_MAKEMAKER'] = '1' if MacOS.version >= :lion
