@@ -7,9 +7,9 @@ class ArmEabiNewLib <Formula
 end
 
 class ArmEabiGcc <Formula
-  url       'http://ftpmirror.gnu.org/gcc/gcc-4.8.0/gcc-4.8.0.tar.bz2'
+  url       'http://ftpmirror.gnu.org/gcc/gcc-4.8.1/gcc-4.8.1.tar.bz2'
   homepage  'http://gcc.gnu.org/'
-  sha1      'b4ee6e9bdebc65223f95067d0cc1a634b59dad72'
+  sha1      '4e655032cda30e1928fcc3f00962f4238b502169'
 
   depends_on 'gmp'
   depends_on 'libmpc'
@@ -73,7 +73,7 @@ class ArmEabiGcc <Formula
                   "--with-libelf=#{libelf.opt_prefix}",
                   "--with-gxx-include-dir=#{prefix}/arm-eabi/include",
                   "--disable-debug", "--disable-__cxa_atexit",
-                  "--with-pkgversion=Neotion-SDK2-Haldir",
+                  "--with-pkgversion=Neotion-SDK2-Jolly",
                   "--with-bugurl=http://www.neotion.com"
       # Temp. workaround until GCC installation script is fixed
       system "mkdir -p #{prefix}/arm-eabi/lib/fpu/interwork"
