@@ -12,6 +12,7 @@ require 'extend/fileutils'
 require 'extend/pathname'
 require 'extend/string'
 require 'extend/symbol'
+require 'extend/enumerable'
 require 'exceptions'
 require 'utils'
 require 'rbconfig'
@@ -33,8 +34,8 @@ RUBY_BIN = Pathname.new("#{RbConfig::CONFIG['bindir']}")
 RUBY_PATH = RUBY_BIN + RbConfig::CONFIG['ruby_install_name'] + RbConfig::CONFIG['EXEEXT']
 
 MACOS = true
-MACOS_VERSION = ENV.fetch('MACOS_VERSION', 10.6)
-MACOS_FULL_VERSION = '10.6.8'
+MACOS_FULL_VERSION = `/usr/bin/sw_vers -productVersion`.chomp
+MACOS_VERSION = ENV.fetch('MACOS_VERSION') { MACOS_FULL_VERSION[/10\.\d+/] }.to_f
 
 ORIGINAL_PATHS = ENV['PATH'].split(':').map{ |p| Pathname.new(p).expand_path rescue nil }.compact.freeze
 
@@ -106,7 +107,7 @@ module Test::Unit::Assertions
   def assert_empty(obj, msg=nil)
     assert_respond_to(obj, :empty?, msg)
     assert(obj.empty?, msg)
-  end if RUBY_VERSION.to_f <= 1.8
+  end unless method_defined?(:assert_empty)
 end
 
 class Test::Unit::TestCase

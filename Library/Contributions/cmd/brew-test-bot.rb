@@ -18,11 +18,11 @@ HOMEBREW_CONTRIBUTED_CMDS = HOMEBREW_REPOSITORY + "Library/Contributions/cmd/"
 class Step
   attr_reader :command, :name, :status, :output, :time
 
-  def initialize test, command, puts_output_on_success = false
+  def initialize test, command, options={}
     @test = test
     @category = test.category
     @command = command
-    @puts_output_on_success = puts_output_on_success
+    @puts_output_on_success = options[:puts_output_on_success]
     @name = command.split[1].delete '-'
     @status = :running
     @repository = HOMEBREW_REPOSITORY
@@ -99,7 +99,7 @@ class Step
 end
 
 class Test
-  attr_reader :log_root, :category, :name, :core_changed, :formulae, :steps
+  attr_reader :log_root, :category, :name, :formulae, :steps
 
   def initialize argument
     @hash = nil
@@ -121,7 +121,6 @@ class Test
 
     @category = __method__
     @steps = []
-    @core_changed = false
     @brewbot_root = Pathname.pwd + "brewbot"
     FileUtils.mkdir_p @brewbot_root
   end
@@ -153,7 +152,8 @@ class Test
     @start_branch = current_branch
 
     # Use Jenkins environment variables if present.
-    if ENV['GIT_PREVIOUS_COMMIT'] and ENV['GIT_COMMIT']
+    if ENV['GIT_PREVIOUS_COMMIT'] and ENV['GIT_COMMIT'] \
+       and not ENV['ghprbPullId']
       diff_start_sha1 = shorten_revision ENV['GIT_PREVIOUS_COMMIT']
       diff_end_sha1 = shorten_revision ENV['GIT_COMMIT']
       test "brew update" if current_branch == "master"
@@ -161,6 +161,20 @@ class Test
       diff_start_sha1 = current_sha1
       test "brew update" if current_branch == "master"
       diff_end_sha1 = current_sha1
+    end
+
+    # Handle Jenkins pull request builder plugin.
+    if ENV['ghprbPullId'] and ENV['GIT_URL']
+      git_url = ENV['GIT_URL']
+      git_match = git_url.match %r{.*github.com[:/](\w+/\w+).*}
+      if git_match
+        github_repo = git_match[1]
+        pull_id = ENV['ghprbPullId']
+        @url = "https://github.com/#{github_repo}/pull/#{pull_id}"
+        @hash = nil
+      else
+        puts "Invalid 'ghprbPullId' environment variable value!"
+      end
     end
 
     if @hash == 'HEAD'
@@ -207,10 +221,6 @@ class Test
           @formulae << File.basename(filename, '.rb')
         end
       end
-      if filename.include? '/Homebrew/' or filename.include? '/ENV/' \
-        or filename.include? 'bin/brew'
-        @core_changed = true
-      end
     end
   end
 
@@ -243,9 +253,16 @@ class Test
     test "brew install --verbose #{dependencies}" unless dependencies.empty?
     test "brew install --verbose --build-bottle #{formula}"
     return unless steps.last.passed?
-    test "brew bottle #{formula}", true
+    bottle_step = test "brew bottle #{formula}", :puts_output_on_success => true
     bottle_revision = bottle_new_revision(formula_object)
     bottle_filename = bottle_filename(formula_object, bottle_revision)
+    if bottle_step.passed? and bottle_step.has_output?
+      bottle_base = bottle_filename.gsub(bottle_suffix(bottle_revision), '')
+      bottle_output = bottle_step.output.gsub /.*(bottle do.*end)/m, '\1'
+      File.open "#{bottle_base}.bottle.rb", 'w' do |file|
+        file.write bottle_output
+      end
+    end
     test "brew uninstall #{formula}"
     test "brew install #{bottle_filename}"
     test "brew test #{formula}" if formula_object.test_defined?
@@ -292,10 +309,11 @@ class Test
     FileUtils.rm_rf @brewbot_root unless ARGV.include? "--keep-logs"
   end
 
-  def test cmd, puts_output_on_success = false
-    step = Step.new self, cmd, puts_output_on_success
+  def test cmd, options={}
+    step = Step.new self, cmd, options
     step.run
     steps << step
+    step
   end
 
   def check_results
@@ -321,10 +339,10 @@ class Test
     cleanup_before
     download
     setup unless ARGV.include? "--skip-setup"
+    homebrew
     formulae.each do |f|
       formula(f)
     end
-    homebrew if core_changed
     cleanup_after
     check_results
   end

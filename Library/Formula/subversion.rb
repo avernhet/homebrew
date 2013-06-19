@@ -2,8 +2,8 @@ require 'formula'
 
 class Subversion < Formula
   homepage 'http://subversion.apache.org/'
-  url 'http://www.apache.org/dyn/closer.cgi?path=subversion/subversion-1.7.9.tar.bz2'
-  sha1 '453757bae78a800997559f2232483ab99238ec1e'
+  url 'http://www.apache.org/dyn/closer.cgi?path=subversion/subversion-1.8.0.tar.bz2'
+  sha1 '45d227511507c5ed99e07f9d42677362c18b364c'
 
   option :universal
   option 'java', 'Build Java bindings'
@@ -14,9 +14,8 @@ class Subversion < Formula
   depends_on 'pkg-config' => :build
 
   # Always build against Homebrew versions instead of system versions for consistency.
-  depends_on 'neon'
-  depends_on 'sqlite'
   depends_on 'serf'
+  depends_on 'sqlite'
   depends_on :python => :optional
 
   # Building Ruby bindings requires libtool
@@ -56,11 +55,11 @@ class Subversion < Formula
   end
 
   def install
-    # We had weird issues with "make" apparently hanging on first run:
-    # https://github.com/mxcl/homebrew/issues/13226
-    ENV.deparallelize
-
     if build.include? 'java'
+      # Java support doesn't build correctly in parallel:
+      # https://github.com/mxcl/homebrew/issues/20415
+      ENV.deparallelize
+
       unless build.universal?
         opoo "A non-Universal Java build was requested."
         puts "To use Java bindings with various Java IDEs, you might need a universal build:"
@@ -84,8 +83,6 @@ class Subversion < Formula
             "--with-zlib=/usr",
             "--with-sqlite=#{Formula.factory('sqlite').opt_prefix}",
             "--with-serf=#{Formula.factory('serf').opt_prefix}",
-            # use our neon, not OS X's
-            "--disable-neon-version-check",
             "--disable-mod-activation",
             "--disable-nls",
             "--without-apache-libexecdir",
@@ -107,6 +104,17 @@ class Subversion < Formula
     system "make"
     system "make install"
     bash_completion.install 'tools/client-side/bash_completion' => 'subversion'
+
+    system "make tools"
+    system "make install-tools"
+    %w[
+      svn-populate-node-origins-index
+      svn-rep-sharing-stats
+      svnauthz-validate
+      svnraisetreeconflict
+    ].each do |prog|
+      bin.install_symlink bin/"svn-tools"/prog
+    end
 
     python do
       system "make swig-py"
