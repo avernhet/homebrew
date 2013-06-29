@@ -548,9 +548,11 @@ class MercurialDownloadStrategy < AbstractDownloadStrategy
   def cached_location; @clone; end
 
   def hgpath
+    # #{HOMEBREW_PREFIX}/share/python/hg is deprecated, but we levae it in for a while
     @path ||= %W[
       #{which("hg")}
       #{HOMEBREW_PREFIX}/bin/hg
+      #{Formula.factory('mercurial').opt_prefix}/bin/hg
       #{HOMEBREW_PREFIX}/share/python/hg
       ].find { |p| File.executable? p }
   end

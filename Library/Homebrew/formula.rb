@@ -305,6 +305,21 @@ class Formula
     ]
   end
 
+  def python(options={:allowed_major_versions => [2, 3]}, &block)
+    require 'python_helper'
+    python_helper(options, &block)
+  end
+
+  # Explicitly only execute the block for 2.x (if a python 2.x is available)
+  def python2 &block
+    python(:allowed_major_versions => [2], &block)
+  end
+
+  # Explicitly only execute the block for 3.x (if a python 3.x is available)
+  def python3 &block
+    python(:allowed_major_versions => [3], &block)
+  end
+
   def self.class_s name
     # remove invalid characters and then camelcase it
     name.capitalize.gsub(/[-_.\s]([a-zA-Z0-9])/) { $1.upcase } \
@@ -533,6 +548,33 @@ class Formula
 
   end
 
+  # For brew-fetch and others.
+  def fetch
+    # Ensure the cache exists
+    HOMEBREW_CACHE.mkpath
+    downloader.fetch
+    cached_download
+  end
+
+  # For FormulaInstaller.
+  def verify_download_integrity fn
+    active_spec.verify_download_integrity(fn)
+  end
+
+  def test
+    ret = nil
+    mktemp do
+      @testpath = Pathname.pwd
+      ret = instance_eval(&self.class.test)
+      @testpath = nil
+    end
+    ret
+  end
+
+  def test_defined?
+    not self.class.instance_variable_get(:@test_defined).nil?
+  end
+
   protected
 
   # Pretty titles the command and buffers stdout/stderr
@@ -558,7 +600,7 @@ class Formula
       @exec_count ||= 0
       @exec_count += 1
       logd = HOMEBREW_LOGS/name
-      logfn = "#{logd}/%02d.%s" % [@exec_count, File.basename(cmd).split(' ').first]
+      logfn = "#{logd}/%02d.%s" % [@exec_count, File.basename(cmd.to_s).split(' ').first]
       mkdir_p(logd)
 
       rd, wr = IO.pipe
@@ -567,7 +609,7 @@ class Formula
         $stdout.reopen wr
         $stderr.reopen wr
         args.collect!{|arg| arg.to_s}
-        exec(cmd, *args) rescue nil
+        exec(cmd.to_s, *args) rescue nil
         puts "Failed to execute: #{cmd}"
         exit! 1 # never gets here unless exec threw or failed
       end
@@ -596,35 +638,6 @@ class Formula
     removed_ENV_variables.each do |key, value|
       ENV[key] = value
     end if removed_ENV_variables
-  end
-
-  public
-
-  # For brew-fetch and others.
-  def fetch
-    # Ensure the cache exists
-    HOMEBREW_CACHE.mkpath
-    downloader.fetch
-    cached_download
-  end
-
-  # For FormulaInstaller.
-  def verify_download_integrity fn
-    active_spec.verify_download_integrity(fn)
-  end
-
-  def test
-    ret = nil
-    mktemp do
-      @testpath = Pathname.pwd
-      ret = instance_eval(&self.class.test)
-      @testpath = nil
-    end
-    ret
-  end
-
-  def test_defined?
-    not self.class.instance_variable_get(:@test_defined).nil?
   end
 
   private
@@ -670,18 +683,8 @@ class Formula
     end
   end
 
+  # The methods below define the formula DSL.
   class << self
-    # The methods below define the formula DSL.
-
-    def self.attr_rw(*attrs)
-      attrs.each do |attr|
-        class_eval <<-EOS, __FILE__, __LINE__ + 1
-          def #{attr}(val=nil)
-            val.nil? ? @#{attr} : @#{attr} = val
-          end
-        EOS
-      end
-    end
 
     attr_rw :homepage, :keg_only_reason, :skip_clean_all, :cc_failures
     attr_rw :plist_startup, :plist_manual
