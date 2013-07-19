@@ -5,11 +5,16 @@ class Subversion < Formula
   url 'http://www.apache.org/dyn/closer.cgi?path=subversion/subversion-1.8.0.tar.bz2'
   sha1 '45d227511507c5ed99e07f9d42677362c18b364c'
 
+  bottle do
+    sha1 '4b8920c129cfc8adbf491a69d836a5a8f7455409' => :mountain_lion
+    sha1 'ee99dbd0f7b7d4abfdfc5d7a82a008d720713e47' => :lion
+    sha1 '733d68a8bfd92a64270fb67f0bc4cc0974602bf0' => :snow_leopard
+  end
+
   option :universal
   option 'java', 'Build Java bindings'
   option 'perl', 'Build Perl bindings'
   option 'ruby', 'Build Ruby bindings'
-  option 'unicode-path', 'Include support for OS X UTF-8-MAC filename'
 
   depends_on 'pkg-config' => :build
 
@@ -26,11 +31,6 @@ class Subversion < Formula
 
   def patches
     ps = []
-
-    # Patch for Subversion handling of OS X UTF-8-MAC filename.
-    if build.include? 'unicode-path'
-      ps << "https://raw.github.com/gist/3044094/1648c28f6133bcbb68b76b42669b0dc237c02dba/patch-path.c.diff"
-    end
 
     # Patch to prevent '-arch ppc' from being pulled in from Perl's $Config{ccflags}
     if build.include? 'perl'
@@ -55,6 +55,19 @@ class Subversion < Formula
   end
 
   def install
+    if build.include? 'unicode-path'
+      raise Homebrew::InstallationError.new(self, <<-EOS.undent
+        The --unicode-path patch is not supported on Subversion 1.8.
+
+        Upgrading from a 1.7 version built with this patch is not supported.
+
+        You should stay on 1.7, install 1.7 from homebrew-versions, or
+          brew rm subversion && brew install subversion
+        to build a new version of 1.8 without this patch.
+      EOS
+      )
+    end
+
     if build.include? 'java'
       # Java support doesn't build correctly in parallel:
       # https://github.com/mxcl/homebrew/issues/20415
@@ -79,7 +92,6 @@ class Subversion < Formula
     args = ["--disable-debug",
             "--prefix=#{prefix}",
             "--with-apr=#{apr_bin}",
-            "--with-ssl",
             "--with-zlib=/usr",
             "--with-sqlite=#{Formula.factory('sqlite').opt_prefix}",
             "--with-serf=#{Formula.factory('serf').opt_prefix}",
@@ -125,7 +137,7 @@ class Subversion < Formula
       # Remove hard-coded ppc target, add appropriate ones
       if build.universal?
         arches = "-arch x86_64 -arch i386"
-      elsif MacOS.version == :leopard
+      elsif MacOS.version <= :leopard
         arches = "-arch i386"
       else
         arches = "-arch x86_64"
@@ -186,37 +198,27 @@ class Subversion < Formula
       EOS
     end
 
-    if build.include? 'unicode-path'
-      s += <<-EOS.undent
-        This unicode-path version implements a hack to deal with composed/decomposed
-        unicode handling on Mac OS X which is different from linux and windows.
-        It is an implementation of solution 1 from
-        http://svn.collab.net/repos/svn/trunk/notes/unicode-composition-for-filenames
-        which _WILL_ break some setups. Please be sure you understand what you
-        are asking for when you install this version.
-
-      EOS
-    end
-
     return s.empty? ? nil : s
   end
 end
 
 __END__
---- subversion/bindings/swig/perl/native/Makefile.PL.in~	2011-07-16 04:47:59.000000000 -0700
-+++ subversion/bindings/swig/perl/native/Makefile.PL.in	2012-06-27 17:45:57.000000000 -0700
-@@ -57,10 +57,13 @@
- 
+--- subversion/bindings/swig/perl/native/Makefile.PL.in~ 2013-06-20 18:58:55.000000000 +0200
++++ subversion/bindings/swig/perl/native/Makefile.PL.in	2013-06-20 19:00:49.000000000 +0200
+@@ -69,10 +69,15 @@
+
  chomp $apr_shlib_path_var;
- 
+
 +my $config_ccflags = $Config{ccflags};
-+$config_ccflags =~ s/-arch\s+\S+//g; # remove any -arch arguments, since the ones we want will already be in $cflags
++# remove any -arch arguments, since those
++# we want will already be in $cflags
++$config_ccflags =~ s/-arch\s+\S+//g;
 +
  my %config = (
      ABSTRACT => 'Perl bindings for Subversion',
      DEFINE => $cppflags,
 -    CCFLAGS => join(' ', $cflags, $Config{ccflags}),
 +    CCFLAGS => join(' ', $cflags, $config_ccflags),
-     INC  => join(' ',$apr_cflags, $apu_cflags,
+     INC  => join(' ', $includes, $cppflags,
                   " -I$swig_srcdir/perl/libsvn_swig_perl",
                   " -I$svnlib_srcdir/include",
