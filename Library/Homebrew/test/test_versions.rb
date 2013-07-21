@@ -274,7 +274,7 @@ class VersionParsingTests < Test::Unit::TestCase
   end
 
   def test_suite3270_version
-    assert_version_detected '3.3.12ga7', 'http://sourceforge.net/projects/x3270/files/x3270/3.3.12ga7/suite3270-3.3.12ga7-src.tgz'
+    assert_version_detected '3.3.12ga7', 'http://downloads.sourceforge.net/project/x3270/x3270/3.3.12ga7/suite3270-3.3.12ga7-src.tgz'
   end
 
   def test_wwwoffle_version
@@ -291,5 +291,15 @@ class VersionParsingTests < Test::Unit::TestCase
 
   def test_ezlupdate_version
     assert_version_detected '2011.10', 'https://github.com/downloads/ezsystems/ezpublish-legacy/ezpublish_community_project-2011.10-with_ezc.tar.bz2'
+  end
+
+  def test_aespipe_version_style
+    assert_version_detected '2.4c',
+      'http://loop-aes.sourceforge.net/aespipe/aespipe-v2.4c.tar.bz2'
+  end
+
+  def test_perforce_style
+    assert_version_detected '2013.1.610569-x86_64',
+      '/usr/local/perforce-2013.1.610569-x86_64.mountain_lion.bottle.tar.gz'
   end
 end

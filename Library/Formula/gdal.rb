@@ -30,11 +30,11 @@ class Gdal < Formula
   depends_on 'freexl'
   depends_on 'libspatialite'
 
-  depends_on "postgresql" if build.include? 'with-postgres'
-  depends_on "mysql" if build.include? 'with-mysql'
+  depends_on "postgresql" => :optional
+  depends_on "mysql" => :optional
 
   # Without Numpy, the Python bindings can't deal with raster data.
-  depends_on 'numpy' => :python unless build.include? 'without-python'
+  depends_on 'numpy' => :python if build.with? 'python'
 
   depends_on 'homebrew/science/armadillo' if build.include? 'enable-armadillo'
 
@@ -54,6 +54,10 @@ class Gdal < Formula
     # Other libraries
     depends_on "xz" # get liblzma compression algorithm library from XZutils
     depends_on "poppler"
+  end
+
+  def png_prefix
+    MacOS.version >= :mountain_lion ? HOMEBREW_PREFIX/"opt/libpng" : MacOS::X11.prefix
   end
 
   def get_configure_args
@@ -76,7 +80,7 @@ class Gdal < Formula
       # Backends supported by OS X.
       "--with-libiconv-prefix=/usr",
       "--with-libz=/usr",
-      "--with-png=#{(MacOS.version >= :mountain_lion) ? HOMEBREW_PREFIX : MacOS::X11.prefix}",
+      "--with-png=#{png_prefix}",
       "--with-expat=/usr",
       "--with-curl=/usr/bin/curl-config",
 
@@ -153,8 +157,8 @@ class Gdal < Formula
     args.concat unsupported_backends.map {|b| '--without-' + b} unless build.include? 'enable-unsupported'
 
     # Database support.
-    args << (build.include?("with-postgres") ? "--with-pg=#{HOMEBREW_PREFIX}/bin/pg_config" : "--without-pg")
-    args << (build.include?("with-mysql") ? "--with-mysql=#{HOMEBREW_PREFIX}/bin/mysql_config" : "--without-mysql")
+    args << (build.with?("postgres") ? "--with-pg=#{HOMEBREW_PREFIX}/bin/pg_config" : "--without-pg")
+    args << (build.with?("mysql") ? "--with-mysql=#{HOMEBREW_PREFIX}/bin/mysql_config" : "--without-mysql")
 
     # Python is installed manually to ensure everything is properly sandboxed.
     args << '--without-python'
@@ -186,8 +190,9 @@ class Gdal < Formula
     # Fortunately, this can be remedied using LDFLAGS.
     sqlite = Formula.factory 'sqlite'
     ENV.append 'LDFLAGS', "-L#{sqlite.opt_prefix}/lib -lsqlite3"
+    ENV.append 'CFLAGS', "-I#{sqlite.opt_prefix}/include"
     # Needed by libdap.
-    ENV.append 'CPPFLAGS', '-I/usr/include/libxml2' if build.include? 'complete'
+    ENV.libxml2 if build.include? 'complete'
 
     # Reset ARCHFLAGS to match how we build.
     if MacOS.prefer_64_bit?
@@ -195,6 +200,9 @@ class Gdal < Formula
     else
       ENV['ARCHFLAGS'] = "-arch i386"
     end
+
+    # Fix hardcoded mandir: http://trac.osgeo.org/gdal/ticket/5092
+    inreplace 'configure', %r[^mandir='\$\{prefix\}/man'$], ''
 
     system "./configure", *get_configure_args
     system "make"

@@ -1,16 +1,95 @@
 # Kickstarter Supporters
 
 This file contains a list of the awesome people who gave £5 or more to
-[our Kickstarter](http://www.kickstarter.com/projects/homebrew/brew-test-bot). 
+[our Kickstarter](http://www.kickstarter.com/projects/homebrew/brew-test-bot).
 
 This list is still incomplete as we need addresses for everyone who receives
 a physical reward. Kickstarter recommends asking only when we are ready to
 ship (to avoid changes of address) so we can't ask for more names/URLs
 until then.
 
+These mindblowing people supported our Kickstarter by giving us £450 or more:
+
+[![Hashrocket](https://s3.amazonaws.com/hashrocket-misc/hr_180x50.png)](http://hashrocket.com/)
+
+These spectacular people supported our Kickstarter by giving us £400 or more:
+
+* [Cargo Media](http://www.cargomedia.ch/)
+
+These incredible people supported our Kickstarter by giving us £200 or more:
+
+* Stephan Toggweiler
+* [The Tor Project](https://www.torproject.org)
+
+These amazing people supported our Kickstarter by giving us £100 or more:
+
+* [Mac Mini Vault](http://www.macminivault.com)
+* jpr
+* [Greg Sieranski](http://wonbyte.com)
+* [Stanley Stuart](http://fivetanley.com)
+* [Conor McDermottroe](http://www.mcdermottroe.com)
+* [Spike Grobstein](http://spike.grobste.in)
+* [nonfiction studios inc.](http://nonfiction.ca/)
+* [Dev Fu! LLC](http://devfu.com)
+* [Human Made Limited](http://hmn.md/)
+* [Roland Moriz](https://roland.io/)
+* [Rob Freiburger](http://robfreiburger.com/)
+* [Carter Schonwald](http://www.wellposed.com)
+* [Andy Piper](http://andypiper.co.uk)
+* [Moriah Trostler](http://www.televolve.com)
+* [Zach Kelling](http://whatit.is)
+* [Scott Densmore](http://scottdensmore.com)
+* [Adam Walz](http://www.adamwalz.net)
+* [Timo Tijhof](https://github.com/Krinkle)
+* [Joshua Hull](https://github.com/joshbuddy)
+* [Chad Catlett](http://www.chadcatlett.com/)
+
+These awesome people supported our Kickstarter by giving us £50 or more:
+
+* [Oliver Sigge](http://oliver-sigge.de)
+* [grahams](http://sean-graham.com/)
+* [Brian Ford](http://briantford.com)
+* Will Froning
+* [Florian Eckerstorfer](http://florianeckerstorfer.com)
+* [Leonhard Melzer](http://foomoo.de/)
+* [Klaus Großmann](https://github.com/iKlaus)
+* [monmon](https://github.com/monmon)
+* [nimbly](http://nimbly.be)
+* [cimnine](http://cimnine.ch)
+* [Greg DeAngelis](http://greg.deangel.is)
+* [Johan Carlquist](https://www.rymdvarel.se)
+* [Simon Lundström](http://soy.se)
+* [Samir Talwar](http://samirtalwar.com/)
+* [John Wu](http://www.johnwu.com)
+* [Jan Lehnardt](http://couchdb.apache.org)
+* [Adam Auden](http://bimble.net/)
+* [closure.jp](http://closure.jp/)
+* Scott S.
+* [Rachel Baker](http://rachelbaker.me)
+* Dominique Poulain
+* [Talks](http://tlks.me)
+* [Philipp Bosch](http://pb.io)
+* [Alexandru Badiu](http://ctrlz.ro)
+* [Misha Manulis](http://brewbit.com)
+* [MrBri](http://mrbri.com)
+* [Marc Van Olmen](http://www.marcvanolmen.com)
+* [Scott Gardner](http://scotteg.com)
+* [Peter JC](http://peterjc.dk)
+* [Nathan Toups](http://rojoroboto.com)
+* [Fluent Globe](http://fluentglobe.com)
+* [Dmitri Akatov](http://akatov.com)
+* [Joey Mink](http://joeymink.com)
+* [MentalPower](http://mentalpower.us)
+* [@worldofchris](http://www.worldofchris.com)
+* [Joël Kuijten](http://pm5544.eu)
+* [William Griffiths](http://Cwmni.com)
+* [Paul Howard](https://github.com/pauldhoward)
+* [Mårten Gustafson](http://marten.gustafson.pp.se)
+* [Markus Heurung](http://markusheurung.de)
+
 These wonderful people supported our Kickstarter by giving us £10 or more:
 
-* [Simon Rascovsky](teleradiologia.com)
+* [Simon Rascovsky](http://teleradiologia.com)
 * [silsha](http://felixarndt.de)
 * [Martin Kopischke](http://martin.kopischke.net)
 * [John Kary](http://johnkary.net)
@@ -59,7 +138,7 @@ These wonderful people supported our Kickstarter by giving us £10 or more:
 * [Boris Mann](http://www.bmannconsulting.com)
 * [Zach A. Thomas](https://github.com/zathomas)
 * [Andrey Yunoshev](http://yunoshev.ru)
-* [David McFarland](www.dcmcfarland.com)
+* [David McFarland](http://www.dcmcfarland.com)
 * [Roland Tanglao](http://rolandtanglao.com)
 * [Jacob Elder](http://jacobelder.com)
 * [ToWatchList](http://towatchlist.com/)

@@ -7,6 +7,8 @@ class Fftw < Formula
 
   option "with-fortran", "Enable Fortran bindings"
 
+  depends_on :fortran => :optional
+
   def install
     args = ["--enable-shared",
             "--disable-debug",
@@ -14,11 +16,7 @@ class Fftw < Formula
             "--enable-threads",
             "--disable-dependency-tracking"]
 
-    if build.include? "with-fortran"
-      ENV.fortran
-    else
-      args << "--disable-fortran" unless which 'gfortran'
-    end
+    args << "--disable-fortran" unless build.with? "fortran"
 
     # single precision
     # enable-sse only works with single
@@ -61,6 +59,7 @@ class Fftw < Formula
           fftw_execute(p); /* repeat as needed */
           fftw_destroy_plan(p);
           fftw_free(in); fftw_free(out);
+          return 0;
       }
     TEST_SCRIPT
 
