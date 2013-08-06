@@ -1,13 +1,13 @@
 require 'formula'
 
 class Setuptools < Formula
-  url 'https://pypi.python.org/packages/source/s/setuptools/setuptools-0.9.5.tar.gz'
-  sha1 'a6ea38fb68f32abf7c1b1fe9a9c56c413f096c3a'
+  url 'https://pypi.python.org/packages/source/s/setuptools/setuptools-0.9.7.tar.gz'
+  sha1 'c56c5cc55b678c25a0a06f25a122f6492d62e2d3'
 end
 
 class Pip < Formula
-  url 'https://pypi.python.org/packages/source/p/pip/pip-1.3.1.tar.gz'
-  sha1 '9c70d314e5dea6f41415af814056b0f63c3ffd14'
+  url 'https://pypi.python.org/packages/source/p/pip/pip-1.4.tar.gz'
+  sha1 '3149dc77c66b77d02497205fca5df56ae9d3e753'
 end
 
 class Python < Formula
@@ -35,7 +35,7 @@ class Python < Formula
   def patches
     p = []
     p << 'https://gist.github.com/paxswill/5402840/raw/75646d5860685c8be98858288d1772f64d6d5193/pythondtrace-patch.diff' if build.with? 'dtrace'
-    # Patch to disable the search for Tk.frameworked, since homebrew's Tk is
+    # Patch to disable the search for Tk.framework, since Homebrew's Tk is
     # a plain unix build. Remove `-lX11`, too because our Tk is "AquaTk".
     p << DATA if build.with? 'brewed-tk'
     p
@@ -128,6 +128,14 @@ class Python < Formula
     # We ship setuptools and pip and reuse the PythonInstalled
     # Requirement here to write the sitecustomize.py
     py = PythonInstalled.new("2.7")
+
+    # Remove old setuptools installations that may still fly around and be
+    # listed in the easy_install.pth. This can break setuptools build with
+    # zipimport.ZipImportError: bad local file header
+    # setuptools-0.9.5-py3.3.egg
+    rm_rf Dir["#{py.global_site_packages}/setuptools*"]
+    rm_rf Dir["#{py.global_site_packages}/distribute*"]
+
     py.binary = bin/'python'
     py.modify_build_environment
     setup_args = [ "-s", "setup.py", "--no-user-cfg", "install", "--force", "--verbose",

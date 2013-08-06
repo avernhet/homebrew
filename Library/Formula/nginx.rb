@@ -6,8 +6,8 @@ class Nginx < Formula
   sha1 '8f006dc773840b6624a137a584ff8850d5155e3f'
 
   devel do
-    url 'http://nginx.org/download/nginx-1.5.2.tar.gz'
-    sha1 '3546be28a72251f8823ab6be6a1180d300d06f76'
+    url 'http://nginx.org/download/nginx-1.5.3.tar.gz'
+    sha1 '88f4548e46c25d32f08681c0aba39b86b84ec3a3'
   end
 
   head 'http://hg.nginx.org/nginx/', :using => :hg
@@ -21,7 +21,7 @@ class Nginx < Formula
   option 'with-gunzip', 'Compile with support for gunzip module'
 
   depends_on 'pcre'
-  depends_on 'passenger' if build.with? 'passenger'
+  depends_on 'passenger' => :optional
   # SPDY needs openssl >= 1.0.1 for NPN; see:
   # https://tools.ietf.org/agenda/82/slides/tls-3.pdf
   # http://www.openssl.org/news/changelog.html
