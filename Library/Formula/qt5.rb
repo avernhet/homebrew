@@ -5,6 +5,12 @@ class Qt5 < Formula
   url 'http://download.qt-project.org/official_releases/qt/5.1/5.1.0/single/qt-everywhere-opensource-src-5.1.0.tar.gz'
   sha1 '12d706124dbfac3d542dd3165176a978d478c085'
 
+  bottle do
+    sha1 '9d960fcb287cd7005fc781dcd06dff80df16794f' => :mountain_lion
+    sha1 'b36c733d6c041ec4dea65ae991bb1d75d4893fd6' => :lion
+    sha1 '446e73fbf472c0ba5a8eee0e40b076c6b7605acc' => :snow_leopard
+  end
+
   head 'git://gitorious.org/qt/qt5.git', :branch => 'stable'
 
   keg_only "Qt 5 conflicts Qt 4 (which is currently much more widely used)."
@@ -20,6 +26,7 @@ class Qt5 < Formula
   depends_on "mysql" => :optional
 
   def install
+    ENV.universal_binary if build.universal?
     args = ["-prefix", prefix,
             "-system-zlib",
             "-confirm-license", "-opensource"]
@@ -29,7 +36,7 @@ class Qt5 < Formula
       ENV.append 'CXXFLAGS', "-I#{MacOS.sdk_path}/System/Library/Frameworks/CoreFoundation.framework/Headers"
     end
 
-    args << "-L#{MacOS::X11.prefix}/lib" << "-I#{MacOS::X11.prefix}/include" if MacOS::X11.installed?
+    args << "-L#{MacOS::X11.lib}" << "-I#{MacOS::X11.include}" if MacOS::X11.installed?
 
     args << "-plugin-sql-mysql" if build.with? 'mysql'
 
@@ -57,14 +64,19 @@ class Qt5 < Formula
 
     if build.include? 'with-debug-and-release'
       args << "-debug-and-release"
-      # Debug symbols need to find the source so build in the prefix
-      mv "../qt-everywhere-opensource-src-#{version}", "#{prefix}/src"
-      cd "#{prefix}/src"
     else
       args << "-release"
     end
 
     args << '-developer-build' if build.include? 'developer'
+
+    # We move the source and build in-place because:
+    # - Debug symbols need to find the source
+    # - to fix https://github.com/mxcl/homebrew/issues/20020
+    # - PySide `make apidoc` needs the src
+    (prefix/"src").mkdir
+    mv Dir['*'], "#{prefix}/src/"
+    cd "#{prefix}/src"
 
     system "./configure", *args
     system "make"
