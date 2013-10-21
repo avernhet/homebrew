@@ -5,6 +5,7 @@ require 'extend/ARGV'
 require 'extend/string'
 require 'extend/symbol'
 require 'extend/enumerable'
+require 'os'
 require 'utils'
 require 'exceptions'
 require 'set'
@@ -12,7 +13,7 @@ require 'rbconfig'
 
 ARGV.extend(HomebrewArgvExtension)
 
-HOMEBREW_VERSION = '0.9.4'
+HOMEBREW_VERSION = '0.9.5'
 HOMEBREW_WWW = 'http://brew.sh'
 
 def cache
@@ -72,17 +73,20 @@ if RUBY_PLATFORM =~ /darwin/
   MACOS_FULL_VERSION = `/usr/bin/sw_vers -productVersion`.chomp
   MACOS_VERSION = MACOS_FULL_VERSION[/10\.\d+/].to_f
   OS_VERSION = "Mac OS X #{MACOS_FULL_VERSION}"
-  MACOS = true
 else
   MACOS_FULL_VERSION = MACOS_VERSION = 0
   OS_VERSION = RUBY_PLATFORM
-  MACOS = false
 end
 
 HOMEBREW_GITHUB_API_TOKEN = ENV["HOMEBREW_GITHUB_API_TOKEN"]
 HOMEBREW_USER_AGENT = "Homebrew #{HOMEBREW_VERSION} (Ruby #{RUBY_VERSION}-#{RUBY_PATCHLEVEL}; #{OS_VERSION})"
 
 HOMEBREW_CURL_ARGS = '-f#LA'
+
+# A regular expession to capture the username (one or more char but no `/`,
+# which has to be escaped like `\/`), repository, followed by an optional `/`
+# and an optional query.
+HOMEBREW_TAP_REGEX = /^([^\/]+)\/([^\/]+)\/?(.+)?$/
 
 module Homebrew extend self
   include FileUtils
@@ -98,7 +102,7 @@ HOMEBREW_PULL_OR_COMMIT_URL_REGEX = 'https:\/\/github.com\/(\w+)\/homebrew(-\w+)
 
 require 'compat' unless ARGV.include? "--no-compat" or ENV['HOMEBREW_NO_COMPAT']
 
-ORIGINAL_PATHS = ENV['PATH'].split(':').map{ |p| Pathname.new(p).expand_path rescue nil }.compact.freeze
+ORIGINAL_PATHS = ENV['PATH'].split(File::PATH_SEPARATOR).map{ |p| Pathname.new(p).expand_path rescue nil }.compact.freeze
 
 SUDO_BAD_ERRMSG = <<-EOS.undent
   You can use brew with sudo, but only if the brew executable is owned by root.

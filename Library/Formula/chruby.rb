@@ -2,8 +2,8 @@ require 'formula'
 
 class Chruby < Formula
   homepage 'https://github.com/postmodern/chruby#readme'
-  url 'https://github.com/postmodern/chruby/archive/v0.3.6.tar.gz'
-  sha1 'b492b1b5661a53c853f4e6ee8f5b67d4d75d0c39'
+  url 'https://github.com/postmodern/chruby/archive/v0.3.7.tar.gz'
+  sha1 '237903096f874f40749520d267fe35e2e3222bb3'
 
   head 'https://github.com/postmodern/chruby.git'
 
@@ -14,7 +14,7 @@ class Chruby < Formula
   def caveats; <<-EOS.undent
     Add the following to the ~/.bashrc or ~/.zshrc file:
 
-      source #{HOMEBREW_PREFIX}/opt/chruby/share/chruby/chruby.sh
+      source #{opt_prefix}/share/chruby/chruby.sh
 
     By default chruby will search for Rubies installed into /opt/rubies/ or
     ~/.rubies/. For non-standard installation locations, simply set the RUBIES
@@ -34,7 +34,7 @@ class Chruby < Formula
     To enable auto-switching of Rubies specified by .ruby-version files,
     add the following to ~/.bashrc or ~/.zshrc:
 
-      source #{HOMEBREW_PREFIX}/opt/chruby/share/chruby/auto.sh
+      source #{opt_prefix}/share/chruby/auto.sh
     EOS
   end
 end
